@@ -7,7 +7,7 @@ def seed_database(script_path):
         conn, cursor = database_connection()
 
         # Read commands from SQL file
-        with open(script_path, 'r') as file:
+        with open(script_path, 'r', encoding="utf-8") as file:
             sql_script = file.read()
 
         # Split the script into individual statements if needed
