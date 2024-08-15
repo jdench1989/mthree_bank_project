@@ -15,6 +15,11 @@ def seed_database(script_path):
         for command in sql_commands:
             if command.strip():  # Avoid executing empty strings
                 cursor.execute(command)
+        
+        # Execute command to create the trigger on transaction table
+        with open("db/seed_database_trans_trigger.sql", 'r', encoding="utf-8") as file:
+            trigger_command = file.read()
+            cursor.execute(trigger_command)
                 
         # Commit the transaction
         conn.commit()
