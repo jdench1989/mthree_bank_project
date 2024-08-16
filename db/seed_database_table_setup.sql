@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     type_id INT NOT NULL, 
     status VARCHAR(10) NOT NULL, 
     balance FLOAT NOT NULL, 
-    creation_date DATETIME NOT NULL, 
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP, 
     customer_id INT, 
     FOREIGN KEY (type_id) REFERENCES account_type(type_id), 
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id));
