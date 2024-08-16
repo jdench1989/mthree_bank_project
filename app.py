@@ -12,12 +12,9 @@ def index():
     pass
 
 @app.route('/customers')
-def get_customers():
-    # Establish database connection
-    conn, cursor = database_connection()
-
-    # Base SQL query
-    sql_query = "SELECT * FROM customers"
+def get_customers():  # Return details of all customers or search a specific customer
+    conn, cursor = database_connection()  # Establish database connection
+    sql_query = "SELECT * FROM customers"  # Base SQL query
     filters = []
     values = []
 
@@ -45,24 +42,16 @@ def get_customers():
     if filters:
         sql_query += " WHERE " + " AND ".join(filters)
 
-    # Execute the SQL query
-    cursor.execute(sql_query, values)
-    res = cursor.fetchall()
-
-    # Close cursor and connection
+    cursor.execute(sql_query, values) # Execute SQL query
+    res = cursor.fetchall()  # Extract results
     cursor.close()
     conn.close()
-
-    # Return the results as JSON
     return jsonify(res), 200
 
 
 @app.route('/customers', methods=['POST'])
-def create_customer():
-    # Create a new customer record in the database
-
-    # Establish database connection
-    conn, cursor = database_connection()
+def create_customer(): # Create a new customer record in the database
+    conn, cursor = database_connection()  # Establish database connection
 
     # Extract form data
     form_values = []
@@ -72,37 +61,53 @@ def create_customer():
     # SQL query using placeholders
     sql_query = "INSERT INTO customers (status_id, last_name, first_name, dob, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s, %s);"
 
-    # Execute SQL substituting placeholder values. Close connection and return success message
-    cursor.execute(sql_query, form_values)
+    cursor.execute(sql_query, form_values)  # Execute SQL query
     conn.commit()
     cursor.close()
     conn.close()
     return jsonify({"message": "Customer created successfully"}), 200
 
 @app.route('/customers/<int:customer_id>', methods=['PUT'])
-def update_customer(customer_id):
-    # Update a customer record in the database
-    conn, cursor = database_connection()
-    sql_query = "UPDATE customers SET "
+def update_customer(customer_id):  # Update a customer record in the database
+    conn, cursor = database_connection()  # Establish database connection
+    sql_query = "UPDATE customers SET "  # Base SQL query
+
+    # Extract columns and values to be updated from the request JSON
     data = request.json
     update_columns = []
     values = []
     for key, value in data.items():
         update_columns.append(f"{key} = %s")
         values.append(value)
+
+    # Compile columns and values into a SQL query using placeholders
     sql_query += ", ".join(update_columns) + " WHERE customer_id = %s"
     values.append(customer_id)
-    cursor.execute(sql_query, values)
+
+    cursor.execute(sql_query, values) # Execute the query
     conn.commit()
     cursor.close()
     conn.close()
     return jsonify({"message":"customer record updated successfully"}), 200
 
-@app.route('/customers', methods=['DELETE'])
-def delete_customer():
-    # Delete a customer record from the database
-    # Allow for foreign key dependency issues
-    pass
+@app.route('/customers/<int:customer_id>', methods=['DELETE'])
+def delete_customer(customer_id):  # Delete a customer record from the database only if no account dependency
+    conn, cursor = database_connection()  # Establish database connection
+    acc_check = cursor.execute("SELECT account_id FROM accounts WHERE customer_id = %s LIMIT 1;", customer_id)
+    res = {}
+    if acc_check:
+        res["success"] = "false"
+        res["message"] = "Customer cannot be deleted. Customer record is associated with an account record. Deactivate customer instead."
+    else:
+        cursor.execute("DELETE FROM customers WHERE customer_id = %s", customer_id)
+        res["success"] = "true"
+        res["message"] = "Customer record deleted successfully."
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify(res), 200
+
+    
 
 @app.route('/accounts')
 def get_accounts():
