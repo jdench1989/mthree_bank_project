@@ -184,7 +184,7 @@ def create_account():
         form_values.append(request.form[key])
     
     #SQL query using placeholders
-    sql_query = " INSERT INTO accounts ( account_id,account_num,sort_code,type_id,status_id,balance,creation_date,customer_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
+    sql_query = " INSERT INTO accounts ( account_num,sort_code,type_id,status,balance,creation_date,customer_id) VALUES ( %s, %s, %s, %s, %s, %s, %s);"
 
     cursor.execute(sql_query, form_values)
     conn.commit()
