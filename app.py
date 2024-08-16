@@ -13,13 +13,54 @@ def index():
 
 @app.route('/customers')
 def get_customers():
-    # Return details of customers
-    pass
+    # Establish database connection
+    conn, cursor = database_connection()
+
+    # Base SQL query
+    sql_query = "SELECT * FROM customers"
+    values = []
+
+    # Check for the customer_id query parameter
+    customer_id = request.args.get('customer_id')
+
+    # If customer_id is provided, modify the query to filter by it
+    if customer_id:
+        sql_query += " WHERE customer_id = %s"
+        values.append(customer_id)
+
+    # Execute the SQL query
+    cursor.execute(sql_query, values)
+    res = cursor.fetchall()
+
+    # Close cursor and connection
+    cursor.close()
+    conn.close()
+
+    # Return the results as JSON
+    return jsonify(res), 200
+
 
 @app.route('/customers', methods=['POST'])
 def create_customer():
     # Create a new customer record in the database
-    pass
+
+    # Establish database connection
+    conn, cursor = database_connection()
+
+    # Extract form data
+    form_values = []
+    for key in request.form:
+        form_values.append(request.form[key])
+    
+    # SQL query using placeholders
+    sql_query = "INSERT INTO customers (status_id, last_name, first_name, dob, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s, %s);"
+
+    # Execute SQL substituting placeholder values. Close connection and return success message
+    cursor.execute(sql_query, form_values)
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return "Customer created successfully"
 
 @app.route('/customers', methods=['PUT'])
 def update_customer():
