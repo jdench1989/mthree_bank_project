@@ -5,20 +5,11 @@ BEGIN
     DECLARE account_from_status VARCHAR(20);
     DECLARE account_to_status VARCHAR(20);
     DECLARE account_from_balance FLOAT;
-    DECLARE account_to_balance FLOAT;
-    DECLARE open_status_id INT;
-
-    -- Get the status ID for 'OPEN'
-    SELECT status_id INTO open_status_id
-    FROM account_status
-    WHERE status = 'OPEN'
-    LIMIT 1;
 
     -- Check the status and balance of account_from
     IF NEW.account_from IS NOT NULL THEN
-        SELECT a_s.status, a.balance INTO account_from_status, account_from_balance
+        SELECT a.status, a.balance INTO account_from_status, account_from_balance
         FROM accounts a
-        JOIN account_status a_s ON a.status_id = a_s.status_id
         WHERE a.account_id = NEW.account_from;
 
         IF account_from_status != 'OPEN' THEN
@@ -37,11 +28,10 @@ BEGIN
         WHERE account_id = NEW.account_from;
     END IF;
 
-    -- Check the status and balance of account_to
+    -- Check the status of account_to
     IF NEW.account_to IS NOT NULL THEN
-        SELECT a_s.status, a.balance INTO account_to_status, account_to_balance
+        SELECT a.status INTO account_to_status
         FROM accounts a
-        JOIN account_status a_s ON a.status_id = a_s.status_id
         WHERE a.account_id = NEW.account_to;
 
         IF account_to_status != 'OPEN' THEN
