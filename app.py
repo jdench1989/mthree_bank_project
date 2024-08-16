@@ -93,13 +93,16 @@ def update_customer(customer_id):  # Update a customer record in the database
 @app.route('/customers/<int:customer_id>', methods=['DELETE'])
 def delete_customer(customer_id):  # Delete a customer record from the database only if no account dependency
     conn, cursor = database_connection()  # Establish database connection
+
+    # Check the database to see if the provided customer has an associated account
     cursor.execute("SELECT account_id FROM accounts WHERE customer_id = %s LIMIT 1;", [customer_id])
-    account_record = cursor.fetchone()  # Fetch the first result if it exists    res = {}
+    account_record = cursor.fetchone()  # Fetch the first result if it exists
+
     res = {}
     if account_record:  # Check if account_record is not None
         res["success"] = "false"
         res["message"] = "Customer cannot be deleted. Customer record is associated with an account record. Deactivate customer instead."
-    else:
+    else:  # If there is no account record then the customer can be safely deleted
         cursor.execute("DELETE FROM customers WHERE customer_id = %s", [customer_id])
         res["success"] = "true"
         res["message"] = "Customer record deleted successfully."
