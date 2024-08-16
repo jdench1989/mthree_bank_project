@@ -59,7 +59,7 @@ def create_customer(): # Create a new customer record in the database
         form_values.append(request.form[key])
     
     # SQL query using placeholders
-    sql_query = "INSERT INTO customers (status_id, last_name, first_name, dob, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s, %s);"
+    sql_query = "INSERT INTO customers (status, last_name, first_name, dob, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s, %s);"
 
     cursor.execute(sql_query, form_values)  # Execute SQL query
     conn.commit()
@@ -93,21 +93,20 @@ def update_customer(customer_id):  # Update a customer record in the database
 @app.route('/customers/<int:customer_id>', methods=['DELETE'])
 def delete_customer(customer_id):  # Delete a customer record from the database only if no account dependency
     conn, cursor = database_connection()  # Establish database connection
-    acc_check = cursor.execute("SELECT account_id FROM accounts WHERE customer_id = %s LIMIT 1;", customer_id)
+    cursor.execute("SELECT account_id FROM accounts WHERE customer_id = %s LIMIT 1;", [customer_id])
+    account_record = cursor.fetchone()  # Fetch the first result if it exists    res = {}
     res = {}
-    if acc_check:
+    if account_record:  # Check if account_record is not None
         res["success"] = "false"
         res["message"] = "Customer cannot be deleted. Customer record is associated with an account record. Deactivate customer instead."
     else:
-        cursor.execute("DELETE FROM customers WHERE customer_id = %s", customer_id)
+        cursor.execute("DELETE FROM customers WHERE customer_id = %s", [customer_id])
         res["success"] = "true"
         res["message"] = "Customer record deleted successfully."
     conn.commit()
     cursor.close()
     conn.close()
     return jsonify(res), 200
-
-    
 
 @app.route('/accounts')
 def get_accounts():
