@@ -1,13 +1,14 @@
+USE bank;
 
 INSERT INTO transaction_type VALUES (1, "deposit"), (2, "withdrawal"), (3, "transfer");
 INSERT INTO account_type VALUES (1, "current"), (2, "savings");
-INSERT INTO customers (status, last_name, first_name, dob, email, phone, address) VALUES 
-    ("ACTIVE", "Peralta", "Jake", "2000-03-14", "jakeperalta@gmail.com", "07777123123", "123 First Street, Anytown, Somecounty, AB12 3CD"), 
-    ("ACTIVE", "Holt", "Raymond", "1998-06-23", "raymondholt@yahoo.com", "07555987654", "456 Second Street, Here, There, CD32 1AB"), 
+INSERT INTO customers (status, last_name, first_name, dob, email, phone, address) VALUES
+    ("ACTIVE", "Peralta", "Jake", "2000-03-14", "jakeperalta@gmail.com", "07777123123", "123 First Street, Anytown, Somecounty, AB12 3CD"),
+    ("ACTIVE", "Holt", "Raymond", "1998-06-23", "raymondholt@yahoo.com", "07555987654", "456 Second Street, Here, There, CD32 1AB"),
     ("INACTIVE", "Santiago", "Amy", "2004-03-12", "amysantiago@msn.com", "07123456789", "789 Third Street, Somewhere, Nowhere, EF45 6GH"),
     ("ACTIVE", "Boyle", "Charles", "1989-10-30", "charlesboyle@icloud.com", "07987654321", "121a Fourth Street, Thisville, Thatcounty, XY34 Z56");
-INSERT INTO accounts (account_num, sort_code, type_id, status, balance, creation_date, customer_id) VALUES 
-    ("12345678", "11-22-33", 1, "OPEN", 1000.00, CURTIME(), 1), 
+INSERT INTO accounts (account_num, sort_code, type_id, status, balance, creation_date, customer_id) VALUES
+    ("12345678", "11-22-33", 1, "OPEN", 1000.00, CURTIME(), 1),
     ("98765432", "44-55-66", 1, "OPEN", 1345.54, CURTIME(), 2),
     ("65927384", "55-66-77", 2, "OPEN", 2000000.23, CURTIME(), 2),
     ("91836498", "12-34-56", 1, "OPEN", 128.02, CURTIME(), 1),

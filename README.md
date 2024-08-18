@@ -27,8 +27,8 @@ Open [localhost:5000/apidocs](http://localhost:5000/apidocs/) in your browser to
 
 To run the MySQL database, use [Docker](https://www.docker.com) with the following command:
 
-```sh
-docker run --rm --name mysql -d -p 3306:3306 -e MYSQL_ALLOW_EMPTY_PASSWORD=true mysql:8
+````sh
+docker run --rm --name mysql -d -p 3306:3306 -e MYSQL_ALLOW_EMPTY_PASSWORD=true -v $(pwd)/seeds:/docker-entrypoint-initdb.d mysql:8
 ```
 
 This will start a MySQL server, available on `localhost:3306` with an empty password. It will run in the background, until you stop it with `docker stop mysql`.
@@ -39,7 +39,7 @@ This repository uses [ruff](https://github.com/astral-sh/ruff) for formatting an
 
 ```sh
 ruff check
-```
+````
 
 ### Understanding linting errors
 
