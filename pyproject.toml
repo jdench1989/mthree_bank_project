@@ -1,0 +1,15 @@
+[project]
+name = "mthree_bank_project"
+version = "0.0.0.dev"
+dependencies = [
+  "flask==3.0.3",
+  "mysql-connector-python==9.0.0",
+  "flasgger==0.9.7b2",
+  "ruff",
+]
+
+[tool.ruff]
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["ALL"]

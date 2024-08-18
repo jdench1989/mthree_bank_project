@@ -1,4 +1,0 @@
-flask
-mysql
-mysql.connector
-flasgger==0.9.7b2

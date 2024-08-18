@@ -1,17 +1,18 @@
-from flask import Flask, jsonify, request
-from db.database_connection import database_connection
+"""Main application file for the banking API."""
+
 from flasgger import Swagger
+from flask import Flask, jsonify, request
+
+from db.database_connection import database_connection
 
 app = Flask(__name__)
 swagger = Swagger(app)
 
-@app.route('/')
-def index():
+
+@app.route("/")
+def index() -> None:
+    """Unused index route."""
     # Eventually will show login page and then show main menu for logged in user
-    # conn, cursor = database_connection()
-    # cursor.close()
-    # conn.close()
-    pass
 
 @app.route('/customers')
 def get_customers():  # 
@@ -154,4 +155,6 @@ def create_transaction():
     pass
 
 
-app.run(host="0.0.0.0", port=5000)
+# Only run the app if this file is the entry point
+if __name__ == "__main__":
+    app.run(port=5000)
