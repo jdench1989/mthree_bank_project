@@ -5,13 +5,11 @@ from flasgger import Swagger
 app = Flask(__name__)
 swagger = Swagger(app)
 
-@app.route('/')
-def index():
+
+@app.route("/")
+def index() -> None:
+    """Unused index route."""
     # Eventually will show login page and then show main menu for logged in user
-    # conn, cursor = database_connection()
-    # cursor.close()
-    # conn.close()
-    pass
 
 @app.route('/customers')
 def get_customers():  # 
