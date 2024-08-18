@@ -28,8 +28,10 @@ Open [localhost:5000/apidocs](http://localhost:5000/apidocs/) in your browser to
 To run the MySQL database, use [Docker](https://www.docker.com) with the following command:
 
 ```sh
-docker run -it --rm -p 3306:3306 -e MYSQL_ALLOW_EMPTY_PASSWORD=true mysql:8
+docker run --name mysql -d --restart unless-stopped -p 3306:3306 -e MYSQL_ALLOW_EMPTY_PASSWORD=true mysql:8
 ```
+
+This will start a MySQL server, available on `localhost:3306` with an empty password. It will run in the background, until you stop it with `docker stop mysql`.
 
 ## Linting & formatting
 
