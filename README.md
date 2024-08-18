@@ -4,5 +4,6 @@ A project integrating a front end UI with a Python/MySQL based back end through 
 ## Running Locally
 
 ```sh
+pip install -r requirements.txt
 flask --app app.py run --debug
 ```
