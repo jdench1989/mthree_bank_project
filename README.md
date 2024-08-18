@@ -15,13 +15,21 @@ source .venv/bin/activate
 pip install .
 ```
 
-Then, run the Flask server in development mode:
+Then, run the Flask server in development mode. This will automatically reload the server when you make changes to the code:
 
 ```sh
 flask --app src/app run
 ```
 
 Open [localhost:5000/apidocs](http://localhost:5000/apidocs/) in your browser to view the Swagger UI.
+
+### Running MySQL
+
+To run the MySQL database, use [Docker](https://www.docker.com) with the following command:
+
+```sh
+docker run -it --rm -p 3306:3306 -e MYSQL_ALLOW_EMPTY_PASSWORD=true mysql:8
+```
 
 ## Linting & formatting
 
