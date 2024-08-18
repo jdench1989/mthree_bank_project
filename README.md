@@ -30,3 +30,9 @@ This repository uses [ruff](https://github.com/astral-sh/ruff) for formatting an
 ```sh
 ruff check
 ```
+
+### Understanding linting errors
+
+If you're unsure about what a linting error means, you can look it up via the warning code. In VSCode, you can also hover over the error to see a description - and click through to the relevant part of the documentation.
+
+![Click through an error in VSCode](docs/vscode-click-through.png)
