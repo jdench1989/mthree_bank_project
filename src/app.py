@@ -1,6 +1,11 @@
-from flask import Flask, jsonify, request
-from db.database_connection import database_connection
+"""Main application file for the banking API."""
+
 from flasgger import Swagger
+from flask import Flask
+from flask import jsonify
+from flask import request
+
+from db.database_connection import database_connection
 
 app = Flask(__name__)
 swagger = Swagger(app)
