@@ -156,6 +156,7 @@ def create_transaction():
     # Create a new transaction
     pass
 
+
 # Only run the app if this file is the entry point
-if __name__=='__main__':
-    app.run(host="0.0.0.0", port=5000)
+if __name__ == "__main__":
+    app.run(port=5000)
