@@ -7,3 +7,5 @@ A project integrating a front end UI with a Python/MySQL based back end through 
 pip install -r requirements.txt
 flask --app app.py run --debug
 ```
+
+Open [localhost:5000/apidocs](http://localhost:5000/apidocs/) in your browser to view the Swagger UI.
