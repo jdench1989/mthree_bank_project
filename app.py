@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, request
 from db.database_connection import database_connection
+from flasgger import Swagger
 
 app = Flask(__name__)
+swagger = Swagger(app)
 
 @app.route('/')
 def index():
