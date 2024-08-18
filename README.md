@@ -23,6 +23,8 @@ flask --app src/app run
 
 Open [localhost:5000/apidocs](http://localhost:5000/apidocs/) in your browser to view the Swagger UI.
 
+If `localhost:5000` is not working on a Mac, [please ensure AirPlay Receiver is turned off in Settings](https://stackoverflow.com/questions/46127005/why-does-localhost5000-not-work-in-flask).
+
 ### Running MySQL
 
 To run the MySQL database, use [Docker](https://www.docker.com) with the following command:
