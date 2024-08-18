@@ -10,3 +10,6 @@ dependencies = [
 
 [tool.ruff]
 src = ["src"]
+
+[tool.ruff.lint]
+select = ["ALL"]
