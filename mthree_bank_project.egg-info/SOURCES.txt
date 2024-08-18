@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+mthree_bank_project.egg-info/PKG-INFO
+mthree_bank_project.egg-info/SOURCES.txt
+mthree_bank_project.egg-info/dependency_links.txt
+mthree_bank_project.egg-info/requires.txt
+mthree_bank_project.egg-info/top_level.txt

@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: mthree_bank_project
+Version: 0.0.0.dev0
+Requires-Dist: flask==3.0.3
+Requires-Dist: mysql-connector-python==9.0.0
+Requires-Dist: flasgger==0.9.7b2
+Requires-Dist: ruff
