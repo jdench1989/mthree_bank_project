@@ -184,83 +184,145 @@ def create_account():
         form_values.append(request.form[key])
     
     #SQL query using placeholders
-    sql_query = " INSERT INTO accounts ( account_num,sort_code,type_id,status,balance,creation_date,customer_id) VALUES ( %s, %s, %s, %s, %s, %s, %s);"
+def create_customer(): # Create a new customer record in the database
+    conn, cursor = database_connection()  # Establish database connection
 
-    cursor.execute(sql_query, form_values)
+    # Extract form data
+    form_values = []
+    for key in request.form:
+        form_values.append(request.form[key])
+    
+    # SQL query using placeholders
+    sql_query = "INSERT INTO customers (status, last_name, first_name, dob, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s, %s);"
+
+    cursor.execute(sql_query, form_values)  # Execute SQL query
     conn.commit()
     cursor.close()
     conn.close()
-    return  jsonify({"message": "Account created successfully"}),200
-
-
-    #finally:
-    cursor.close()
-    conn.close()
+    return jsonify({"message": "Customer created successfully"}), 200    
   
 
-
-"""
-@app.route('/accounts', methods=['PUT'])
-def update_account():
-    # Update account record in the database
-    # Connect to the database
-    conn, cursor = database_connection()
-
-    acc= input("Enter the account Number you would like to update ")
-    sc=input("Enter sort code of the account you would like to update ")
-
-    query= "SELECT * from accounts where account_num = acc;"
-    cursor.execute(query)
-    data = request.get_json()
-
-    sort_code = data.get('sort_code')
-    account_num = data.get('account_num')
-    status_id = data.get('status_id')
-    balance = data.get('balance')
-    type_id = data.get('type_id')
-    customer_id = data.get('customer_id')
-    creation_date = data.get('creation_date') 
+@app.route('/accounts/<account_id>', methods=['PUT'])
+def update_account(account_id):
+    conn, cursor = database_connection()  # Establish database connection
     
+
+    # Extract columns and values to be updated from the request JSON
+    #data = request.get_json()
+    status = request.form.get('status')
+
+    #check if status is provided in request
+    if not status:
+        return jsonify({"error : missing 'status' field"}),400
+
+    # execute the query
+    try:
+        sql_query = "UPDATE accounts SET status = %s WHERE account_id = %s"
+        cursor.execute(sql_query, (status, account_id))
+
     
-     # Validate required fields
-    #if not all([sort_code, account_num, status_id, balance, type_id, customer_id, creation_date]):
-     #   return jsonify({"error": "Missing required fields"}), 400
+        conn.commit()
+        return jsonify({"message":"account status updated successfully"}), 200
     
-    query = 
-    INSERT INTO accounts (sort_code, account_num, status_id, balance, type_id, customer_id, creation_date)
-    VALUES (%s, %s, %s, %s, %s, %s, %s);
-    
-    values=(sort_code,account_num,status_id, balance,type_id,customer_id,creation_date)
-    cursor.execute(query,values)
-    conn.commit()
-    return jsonify({"message": "Account added successfully"}), 201
-    #except mysql.connector.Error as err:
-       # conn.rollback()
-       # return jsonify({"error": str(err)}), 500
-    #finally:
-    cursor.close()
-    conn.close()    
+    except Exception as err:
+        # Rollback in case of error
+        conn.rollback()
+        return jsonify({"error": str(err)}), 500
 
+    finally:
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
 
-
-
-"""
-
-@app.route('/accounts', methods=['DELETE'])
-def close_account():
-    # Close an account
-    pass
-#changes account status to close.
 
 @app.route('/transactions')
-def get_transactions():
-    # Return details of transactions
-    pass
+def get_transactions():  # Return details of all transactions or search a specific transaction
+    conn, cursor = database_connection()  # Establish database connection
+    sql_query = """SELECT * FROM customers c INNER JOIN accounts a ON c.customer_id = a.customer_id
+                 INNER JOIN accounts_transactions a_tr ON a_tr.account_id= a.account_id
+                 INNER JOIN transactions t on a_tr.transaction_id=t.transaction_id """  # Base SQL query
+    filters = []
+    values = []
+
+
+    # Check for query parameters
+    customer_id = request.args.get('customer_id') # .../customers?customer_id=4
+    first_name = request.args.get('first_name')
+    last_name = request.args.get('last_name')
+    sort_code = request.args.get('sort_code')
+    account_num = request.args.get('account_num')
+    transaction_date_earliest = request.args.get('transaction_time_earliest')
+    transaction_date_latest = request.args.get('transaction_time_latest')
+
+
+    # Add filters based on the provided query parameters
+    if customer_id:
+        filters.append("c.customer_id = %s")
+        values.append(customer_id)
+    if first_name:
+        filters.append("c.first_name LIKE %s")
+        values.append(f"%{first_name}%")
+    if last_name:
+        filters.append("c.last_name LIKE %s")
+        values.append(f"%{last_name}%")
+    if account_num:
+        filters.append("a.account_num = %s")
+        values.append(account_num)
+    if sort_code:
+        filters.append("a.sort_code = %s")
+        values.append(sort_code)
+
+    if transaction_date_earliest:
+        filters.append("date(t.transaction_time) >= %s")
+        values.append(transaction_date_earliest)
+    if transaction_date_latest:
+        filters.append("date(t.transaction_time) <= %s")
+        values.append(transaction_date_latest)
+
+    # Add filters to SQL query if there are any
+    if filters:
+        sql_query += " WHERE " + " AND ".join(filters)
+
+     # Print the query and parameters
+    print("SQL Query:", sql_query)
+    print("Values:", values)
+
+
+    cursor.execute(sql_query, values) # Execute SQL query
+    res = cursor.fetchall()  # Extract results
+    cursor.close()
+    conn.close()
+    return jsonify(res), 200
+
 
 @app.route('/transactions', methods=['POST'])
 def create_transaction():
     # Create a new transaction
-    pass
+    conn, cursor = database_connection()  # Establish database connection
+
+    # Extract form data
+    form_values = []
+    for key in request.form:
+        form_values.append(request.form[key])
+    
+    try:
+        # SQL query using placeholders
+        sql_query = "INSERT INTO transactions (type_id, account_from, account_to, amount) VALUES (%s, %s, %s, %s);"
+
+        cursor.execute(sql_query, form_values)  # Execute SQL query
+        conn.commit()
+        return jsonify({"message": "Transaction created successfully"}), 200
+    
+    except Exception as err:
+        # Rollback in case of error
+        conn.rollback()
+        return jsonify({"error": str(err)}), 500
+
+    finally:
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+ 
 
 
 #if __name__ == '__main__':
