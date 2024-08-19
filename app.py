@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-from tabulate import tabulate
 from db.database_connection import database_connection
 import hashlib
 import re
@@ -137,7 +136,7 @@ def profile():
     return redirect(url_for('login'))
 
 
-@app.route('/customers')
+@app.route('/customer')
 def get_customers():  # Return details of all customers or search a specific customer
     conn, cursor = database_connection()  # Establish database connection
     sql_query = "SELECT * FROM customers"  # Base SQL query
@@ -145,7 +144,7 @@ def get_customers():  # Return details of all customers or search a specific cus
     values = []
 
     # Check for query parameters
-    # .../customers?customer_id=4
+    # .../customer?customer_id=4
     customer_id = request.args.get('customer_id')
     first_name = request.args.get('first_name')
     last_name = request.args.get('last_name')
@@ -173,75 +172,77 @@ def get_customers():  # Return details of all customers or search a specific cus
     res = cursor.fetchall()  # Extract results
     cursor.close()
     conn.close()
-    return render_template('customers.html', res=res)
+    return render_template('customer.html', res=res, )
 
 
-@app.route('/customers', methods=['POST'])
-def create_customer():  # Create a new customer record in the database
-    conn, cursor = database_connection()  # Establish database connection
+@app.route('/customer/new', methods=['GET', 'POST'])
+def new_customer():  # Create a new customer record in the database
+    if request.method == "GET":
+        return render_template('customer_new.html')
+    elif request.method == 'POST':
+        conn, cursor = database_connection()  # Establish database connection
 
-    # Extract form data
-    form_values = []
-    for key in request.form:
-        form_values.append(request.form[key])
+        # Extract form data
+        form_values = ['OPEN']
+        for key in request.form:
+            form_values.append(request.form[key])
 
-    # SQL query using placeholders
-    sql_query = "INSERT INTO customers (status, last_name, first_name, dob, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s, %s);"
+        # SQL query using placeholders
+        sql_query = "INSERT INTO customers (status, last_name, first_name, dob, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s, %s);"
 
-    cursor.execute(sql_query, form_values)  # Execute SQL query
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({"message": "Customer created successfully"}), 200
-
-
-@app.route('/customers/<int:customer_id>', methods=['PUT'])
-def update_customer(customer_id):  # Update a customer record in the database
-    conn, cursor = database_connection()  # Establish database connection
-    sql_query = "UPDATE customers SET "  # Base SQL query
-
-    # Extract columns and values to be updated from the request JSON
-    data = request.json
-    update_columns = []
-    values = []
-    for key, value in data.items():
-        update_columns.append(f"{key} = %s")
-        values.append(value)
-
-    # Compile columns and values into a SQL query using placeholders
-    sql_query += ", ".join(update_columns) + " WHERE customer_id = %s"
-    values.append(customer_id)
-
-    cursor.execute(sql_query, values)  # Execute the query
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({"message": "customer record updated successfully"}), 200
+        cursor.execute(sql_query, form_values)  # Execute SQL query
+        conn.commit()
+        customer_id = cursor.lastrowid
+        cursor.close()
+        conn.close()
+        return redirect(url_for('get_customers', customer_id=customer_id))
 
 
-@app.route('/customers/<int:customer_id>', methods=['DELETE'])
-# Delete a customer record from the database only if no account dependency
-def delete_customer(customer_id):
-    conn, cursor = database_connection()  # Establish database connection
+@app.route('/customer/<int:customer_id>', methods=['GET', 'PUT', 'DELETE'])
+def modify_customer(customer_id):  # Update a customer record in the database
+    if request.method == 'GET':
+        return render_template('customer_modify.html', customer_id=customer_id)
+    
+    elif request.method == 'PUT':
+        # Extract columns and values to be updated from the request JSON
+        form_values = []
+        for key in request.form:
+            form_values.append(request.form[key])
 
-    # Check the database to see if the provided customer has an associated account
-    cursor.execute(
-        "SELECT account_id FROM accounts WHERE customer_id = %s LIMIT 1;", [customer_id])
-    account_record = cursor.fetchone()  # Fetch the first result if it exists
+        # Compile columns and values into a SQL query using placeholders
+        sql_query = """UPDATE customers SET 
+        status = %s, last_name = %s, first_name = %s, dob = %s, email = %s, phone = %s, address = %s
+        WHERE customer_id = %s;
+        """
+        form_values.append(customer_id)
+        conn, cursor = database_connection()  # Establish database connection
+        cursor.execute(sql_query, form_values)  # Execute the query
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return redirect(url_for('get_customers', customer_id=customer_id))
+    
+    elif request.method == "DELETE":
+        conn, cursor = database_connection()  # Establish database connection
 
-    res = {}
-    if account_record:  # Check if account_record is not None
-        res["success"] = "false"
-        res["message"] = "Customer cannot be deleted. Customer record is associated with an account record. Deactivate customer instead."
-    else:  # If there is no account record then the customer can be safely deleted
+        # Check the database to see if the provided customer has an associated account
         cursor.execute(
-            "DELETE FROM customers WHERE customer_id = %s", [customer_id])
-        res["success"] = "true"
-        res["message"] = "Customer record deleted successfully."
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify(res), 200
+            "SELECT account_id FROM accounts WHERE customer_id = %s LIMIT 1;", [customer_id])
+        account_record = cursor.fetchone()  # Fetch the first result if it exists
+
+        res = {}
+        if account_record:  # Check if account_record is not None
+            res["success"] = "false"
+            res["message"] = "Customer cannot be deleted. Customer record is associated with an account record. Deactivate customer instead."
+        else:  # If there is no account record then the customer can be safely deleted
+            cursor.execute(
+                "DELETE FROM customers WHERE customer_id = %s", [customer_id])
+            res["success"] = "true"
+            res["message"] = "Customer record deleted successfully."
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return render_template('customer_modify.html', res=res)
 
 
 @app.route('/accounts')
