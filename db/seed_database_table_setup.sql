@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     type_id INT NOT NULL, 
     account_from INT, 
     account_to INT, 
-    transaction_time DATETIME NOT NULL, 
+    transaction_time DATETIME DEFAULT CURRENT_TIMESTAMP, 
     amount FLOAT NOT NULL, 
     FOREIGN KEY (type_id) REFERENCES transaction_type(type_id));
 CREATE TABLE IF NOT EXISTS accounts_transactions (
