@@ -10,7 +10,7 @@ db_config = {
 
 def database_connection():
     conn =  mysql.connector.connect(**db_config)
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     return conn, cursor
 
 database_connection()
