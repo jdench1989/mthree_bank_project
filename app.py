@@ -1,26 +1,33 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-from flask_mysqldb import MySQL
-import MySQLdb.cursors
-import MySQLdb.cursors, re, hashlib
+# from flask_mysqldb import MySQL
+# import MySQLdb.cursors
+# import MySQLdb.cursors, re, hashlib
+from tabulate import tabulate
 from db.database_connection import database_connection
+import hashlib
 
 app = Flask(__name__)
 
 # Change this to your secret key (it can be anything, it's for extra protection)
 app.secret_key = 'your secret key'
 
-# Enter your database connection details below
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'bank'
+# # Enter your database connection details below
+# app.config['MYSQL_HOST'] = 'localhost'
+# app.config['MYSQL_USER'] = 'root'
+# app.config['MYSQL_PASSWORD'] = ''
+# app.config['MYSQL_DB'] = 'bank'
 
-# Intialize MySQL
-mysql = MySQL(app)
+# # Intialize MySQL
+# mysql = MySQL(app)
+
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
 
 # http://localhost:5000/bank/ - the following will be our login page, which will use both GET and POST requests
 @app.route('/bank/', methods=['GET', 'POST'])
 def login():
+    conn, cursor = database_connection()
     # Output a message if something goes wrong...
     msg = ''
     # Check if "username" and "password" POST requests exist (user submitted form)
@@ -33,11 +40,13 @@ def login():
         hash = hashlib.sha1(hash.encode())
         password = hash.hexdigest()
         # Check if account exists using MySQL
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password,))
         # Fetch one record and return result
         account = cursor.fetchone()
+        cursor.close()
+        conn.close()
         # If account exists in accounts table in out database
+        print(account)
         if account:
             # Create session data, we can access this data in other routes
             session['loggedin'] = True
@@ -124,29 +133,58 @@ def profile():
     # User is not logged in redirect to login page
     return redirect(url_for('login'))
 
-@app.route('/')
-def index():
-    # Eventually will show login page and then show main menu for logged in user
-    # conn, cursor = database_connection()
-    # cursor.close()
-    # conn.close()
-    pass
 
+
+
+# @app.route('/customers')
+# def get_customers():  # Return details of all customers or search a specific customer
+#     conn, cursor = database_connection()  # Establish database connection
+#     sql_query = "SELECT * FROM customers"  # Base SQL query
+#     filters = []
+#     values = []
+
+#     # Check for query parameters
+#     # .../customers?customer_id=4
+#     customer_id = request.args.get('customer_id')
+#     first_name = request.args.get('first_name')
+#     last_name = request.args.get('last_name')
+#     email = request.args.get('email')
+
+#     # Add filters based on the provided query parameters
+#     if customer_id:
+#         filters.append("customer_id = %s")
+#         values.append(customer_id)
+#     if first_name:
+#         filters.append("first_name LIKE %s")
+#         values.append(f"%{first_name}%")
+#     if last_name:
+#         filters.append("last_name LIKE %s")
+#         values.append(f"%{last_name}%")
+#     if email:
+#         filters.append("email LIKE %s")
+#         values.append(f"%{email}%")
+
+#     # Add filters to SQL query if there are any
+#     if filters:
+#         sql_query += " WHERE " + " AND ".join(filters)
+
+#     cursor.execute(sql_query, values)  # Execute SQL query
+#     res = cursor.fetchall()  # Extract results
+#     cursor.close()
+#     conn.close()
+#     return jsonify(res), 200
 
 @app.route('/customers')
-def get_customers():  # Return details of all customers or search a specific customer
+def get_customers():
     conn, cursor = database_connection()  # Establish database connection
     sql_query = "SELECT * FROM customers"  # Base SQL query
     filters = []
     values = []
-
     # Check for query parameters
-    # .../customers?customer_id=4
     customer_id = request.args.get('customer_id')
     first_name = request.args.get('first_name')
     last_name = request.args.get('last_name')
     email = request.args.get('email')
-
     # Add filters based on the provided query parameters
     if customer_id:
         filters.append("customer_id = %s")
@@ -160,16 +198,55 @@ def get_customers():  # Return details of all customers or search a specific cus
     if email:
         filters.append("email LIKE %s")
         values.append(f"%{email}%")
-
     # Add filters to SQL query if there are any
     if filters:
         sql_query += " WHERE " + " AND ".join(filters)
-
     cursor.execute(sql_query, values)  # Execute SQL query
     res = cursor.fetchall()  # Extract results
+    # Get column names from the cursor
+    column_names = [desc[0] for desc in cursor.description]
     cursor.close()
     conn.close()
-    return jsonify(res), 200
+    # Format results as a table
+    table = tabulate(res, headers=column_names, tablefmt="html")
+    # print(table)  # Print the table in the console
+    # return jsonify(res), 200
+    html_content = f"""
+    <html>
+    <head>
+    <title>Customer Data</title>
+    <style>
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        table, th, td {{
+            border: 1px solid black;
+        }}
+        th {{
+            background-color: #4CAF50;
+            color: white;
+        }}
+        tr:nth-child(even) {{
+            background-color: #f2f2f2;
+        }}
+        tr:nth-child(odd) {{
+            background-color: #ffffff;
+        }}
+        td {{
+            padding: 8px;
+            text-align: left;
+        }}
+    </style>
+    </head>
+    <body>
+    <h1>Customer Data</h1>
+            {table}
+    </body>
+    </html>
+        """
+    print(table)
+    return render_template_string(html_content)
 
 
 @app.route('/customers', methods=['POST'])
