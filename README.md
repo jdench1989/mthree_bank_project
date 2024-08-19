@@ -7,3 +7,5 @@ A project integrating a front end UI with a Python/MySQL based back end through 
 <!-- Download docker desktop -->
 
 <!-- pip install -r requirements.txt -->
+
+<!-- Instructions to create .env and provide an APP_SECRET_KEY -->
