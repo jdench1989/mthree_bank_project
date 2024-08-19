@@ -7,11 +7,13 @@ import re
 app = Flask(__name__)
 
 # Change this to your secret key (it can be anything, it's for extra protection)
-app.secret_key = 'your secret key'
+app.secret_key = 'SupErdUperSECRETKey19634'
 
+# Root endpoint automatically routed to http://localhost:5000/bank/home
 @app.route('/')
 def index():
-    return redirect(url_for('login'))
+    return redirect(url_for('home'))
+
 
 # http://localhost:5000/bank/ - the following will be our login page, which will use both GET and POST requests
 @app.route('/bank/', methods=['GET', 'POST'])
@@ -29,7 +31,8 @@ def login():
         hash = hashlib.sha1(hash.encode())
         password = hash.hexdigest()
         # Check if account exists using MySQL
-        cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password,))
+        cursor.execute(
+            'SELECT * FROM users WHERE username = %s AND password = %s', (username, password,))
         # Fetch one record and return result
         account = cursor.fetchone()
         cursor.close()
@@ -48,15 +51,17 @@ def login():
     # Show the login form with message (if any)
     return render_template('index.html', msg=msg)
 
-    # http://localhost:5000/bank/logout - this will be the logout page
+
+# http://localhost:5000/bank/logout - this will be the logout page
 @app.route('/bank/logout')
 def logout():
     # Remove session data, this will log the user out
-   session.pop('loggedin', None)
-   session.pop('id', None)
-   session.pop('username', None)
-   # Redirect to login page
-   return redirect(url_for('login'))
+    session.pop('loggedin', None)
+    session.pop('id', None)
+    session.pop('username', None)
+    # Redirect to login page
+    return redirect(url_for('login'))
+
 
 # http://localhost:5000/bank/register - this will be the registration page, we need to use both GET and POST requests
 @app.route('/bank/register', methods=['GET', 'POST'])
@@ -88,7 +93,8 @@ def register():
             hash = hashlib.sha1(hash.encode())
             password = hash.hexdigest()
             # Account doesn't exist, and the form data is valid, so insert the new account into the accounts table
-            cursor.execute('INSERT INTO users VALUES (NULL, %s, %s, %s)', (username, password, email,))
+            cursor.execute(
+                'INSERT INTO users VALUES (NULL, %s, %s, %s)', (username, password, email,))
             conn.commit()
             cursor.close()
             conn.close()
@@ -99,6 +105,7 @@ def register():
     # Show registration form with message (if any)
     return render_template('register.html', msg=msg)
 
+
 # http://localhost:5000/bank/home - this will be the home page, only accessible for logged in users
 @app.route('/bank/home')
 def home():
@@ -108,6 +115,7 @@ def home():
         return render_template('home.html', username=session['username'])
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
+
 
 # http://localhost:5000/bank/profile - this will be the profile page, only accessible for logged in users
 @app.route('/bank/profile')
