@@ -1,16 +1,22 @@
 import mysql.connector
 
 db_config = {
-    # Ensure config details are correct for your user and environment
     'user': 'root',
     'password': '',
-    'host': 'localhost',
-    'database': 'bank'
+    'host': 'localhost'
 }
 
 def database_connection():
-    conn =  mysql.connector.connect(**db_config)
+    # Connect to the MySQL server without specifying a database
+    conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
-    return conn, cursor
 
-database_connection()
+    # Check if the 'bank' database exists
+    cursor.execute("SHOW DATABASES LIKE 'bank';")
+    result = cursor.fetchone()
+
+    if result:
+        # If 'bank' exists, switch to the 'bank' database
+        cursor.execute("USE bank;")
+
+    return conn, cursor
