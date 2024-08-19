@@ -35,7 +35,6 @@ def login():
         cursor.close()
         conn.close()
         # If account exists in accounts table in our database
-        print(account)
         if account:
             # Create session data, we can access this data in other routes
             session['loggedin'] = True
@@ -91,6 +90,8 @@ def register():
             # Account doesn't exist, and the form data is valid, so insert the new account into the accounts table
             cursor.execute('INSERT INTO users VALUES (NULL, %s, %s, %s)', (username, password, email,))
             conn.commit()
+            cursor.close()
+            conn.close()
             msg = 'You have successfully registered!'
     elif request.method == 'POST':
         # Form is empty... (no POST data)
@@ -98,7 +99,7 @@ def register():
     # Show registration form with message (if any)
     return render_template('register.html', msg=msg)
 
-# http://localhost:5000/pythinlogin/home - this will be the home page, only accessible for logged in users
+# http://localhost:5000/bank/home - this will be the home page, only accessible for logged in users
 @app.route('/bank/home')
 def home():
     # Check if the user is logged in
@@ -108,21 +109,21 @@ def home():
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
-# http://localhost:5000/pythinlogin/profile - this will be the profile page, only accessible for logged in users
+# http://localhost:5000/bank/profile - this will be the profile page, only accessible for logged in users
 @app.route('/bank/profile')
 def profile():
     # Check if the user is logged in
     if 'loggedin' in session:
+        conn, cursor = database_connection()
         # We need all the account info for the user so we can display it on the profile page
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM users WHERE id = %s', (session['id'],))
         account = cursor.fetchone()
+        cursor.close()
+        conn.close()
         # Show the profile page with account info
         return render_template('profile.html', account=account)
     # User is not logged in redirect to login page
     return redirect(url_for('login'))
-
-
 
 
 # @app.route('/customers')
