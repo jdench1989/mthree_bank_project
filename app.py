@@ -3,11 +3,14 @@ from tabulate import tabulate
 from db.database_connection import database_connection
 import hashlib
 import re
+import os
+from dotenv import load_dotenv
 
-app = Flask(__name__)
+# Load environment variables from .env file to local environment variables
+load_dotenv()
 
-# Change this to your secret key (it can be anything, it's for extra protection)
-app.secret_key = 'SupErdUperSECRETKey19634'
+app = Flask(__name__)  # Instantiate Flask
+app.secret_key = os.environ("APP_SECRET_KEY")  # Load secret key from environment variables
 
 # Root endpoint automatically routed to http://localhost:5000/bank/home
 @app.route('/')

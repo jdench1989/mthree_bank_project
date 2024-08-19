@@ -19,4 +19,4 @@ INSERT INTO transactions (type_id, account_from, account_to, transaction_time, a
     (2, 7, NULL, CURTIME(), 123.00),
     (3, 3, 2, CURTIME(), 100000.00);
 INSERT INTO users (id, username, password, email) VALUES 
-    (1, 'test', '0ef15de6149819f2d10fc25b8c994b574245f193', 'test@test.com');
+    (1, 'test', 'aa689352e9dc50fb43b1e3428db0af42ed9186b9', 'test@test.com');
