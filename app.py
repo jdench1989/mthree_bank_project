@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, request
 from db.database_connection import database_connection
+from flasgger import Swagger
 
 app = Flask(__name__)
+swagger = Swagger(app)
 
 @app.route('/')
 def index():
@@ -12,7 +14,17 @@ def index():
     pass
 
 @app.route('/customers')
-def get_customers():  # Return details of all customers or search a specific customer
+def get_customers():  # 
+    """Return details of all customers or search a specific customer
+    ---
+    parameters:
+      - name: customer_id
+        in: query
+        type: string
+    responses:
+      200:
+        description: A list of customers, optionally filtered by query strings
+    """
     conn, cursor = database_connection()  # Establish database connection
     sql_query = "SELECT * FROM customers"  # Base SQL query
     filters = []
