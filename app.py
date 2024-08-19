@@ -247,6 +247,7 @@ def get_transactions():  # Return details of all transactions or search a specif
 
     # Check for query parameters
     customer_id = request.args.get('customer_id') # .../customers?customer_id=4
+    account_id = request.args.get('account_id')
     first_name = request.args.get('first_name')
     last_name = request.args.get('last_name')
     sort_code = request.args.get('sort_code')
@@ -259,6 +260,9 @@ def get_transactions():  # Return details of all transactions or search a specif
     if customer_id:
         filters.append("c.customer_id = %s")
         values.append(customer_id)
+    if account_id:
+        filters.append("a.account_id = %s")
+        values.append(account_id)
     if first_name:
         filters.append("c.first_name LIKE %s")
         values.append(f"%{first_name}%")
@@ -301,13 +305,19 @@ def create_transaction():
     conn, cursor = database_connection()  # Establish database connection
 
     # Extract form data
+    form_columns = []
     form_values = []
-    for key in request.form:
-        form_values.append(request.form[key])
+    for key, value in request.form.items():
+        form_columns.append(key)
+        form_values.append(value)
     
     try:
         # SQL query using placeholders
-        sql_query = "INSERT INTO transactions (type_id, account_from, account_to, amount) VALUES (%s, %s, %s, %s);"
+        sql_query = "INSERT INTO transactions (" 
+        sql_query += ", ".join(form_columns)  # Add column names
+        sql_query += ") VALUES ("
+        sql_query += ", ".join(["%s"] * len(form_values))  # Add placeholders
+        sql_query += ")"
 
         cursor.execute(sql_query, form_values)  # Execute SQL query
         conn.commit()
@@ -322,8 +332,6 @@ def create_transaction():
         # Close cursor and connection
         cursor.close()
         conn.close()
- 
-
 
 #if __name__ == '__main__':
 app.run(host="0.0.0.0", port=5001)
