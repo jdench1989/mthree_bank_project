@@ -3,10 +3,15 @@
 {% block title %}Modify Account{% endblock %}
 
 {% block content %}
-<button>Button to submit changes</button>
-<p>Account_number = {{account_id}}</p>
-<p>PLACEHOLDER: Will display a single field form to change account status</p>
-<p>Form submission routes to /account/account_number METHOD = PUT</p>
-{{res}}
-{% endblock %}
+<h2>Modify Account</h2>
+<form action="{{ url_for('modify_account', account_id=account.account_id) }}" method="post">
+    <label for="status">Status:</label>
+    <select id="status" name="status">
+        <option value="OPEN" {{ 'selected' if account.status == 'OPEN' else '' }}>OPEN</option>
+        <option value="CLOSED" {{ 'selected' if account.status == 'CLOSED' else '' }}>CLOSED</option>
+    </select><br>
 
+    <button type="submit">Update</button>
+</form>
+
+{% endblock %}
