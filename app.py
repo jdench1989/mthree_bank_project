@@ -299,15 +299,13 @@ def get_accounts():
     if filters:
         sql_query += " WHERE " + " AND ".join(filters)
 
-    # Execute the SQL sqlQuery
-    cursor.execute(sql_query, values)
-    res = cursor.fetchall()
-
-    # close cursor and connection
+    cursor.execute(sql_query, values)  # Execute SQL query
+    res = cursor.fetchall()  # Extract results
     cursor.close()
     conn.close()
-
-    return jsonify(res), 200
+    headers = [i[0] for i in cursor.description]
+    table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
+    return render_template('account.html', table=table)
 
 
 @app.route('/accounts', methods=['POST'])
