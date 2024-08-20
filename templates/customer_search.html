@@ -2,7 +2,32 @@
 
 {% block title %}Customer Search{% endblock %}
 
-{%block script %} {% endblock %}
+{%block script %} 
+<script>
+    function buildQueryUrl() {
+        // Get input values
+        const customerId = document.getElementById('customer_id').value;
+        const firstName = document.getElementById('first_name').value;
+        const lastName = document.getElementById('last_name').value;
+        const email = document.getElementById('email').value;
+
+        // Base URL
+        let baseUrl = '/customer?';
+
+        // Append parameters to URL
+        if (customerId) baseUrl += `customer_id=${encodeURIComponent(customerId)}&`;
+        if (firstName) baseUrl += `first_name=${encodeURIComponent(firstName)}&`;
+        if (lastName) baseUrl += `last_name=${encodeURIComponent(lastName)}&`;
+        if (email) baseUrl += `email=${encodeURIComponent(email)}&`;
+
+        // Remove trailing '&'
+        baseUrl = baseUrl.slice(0, -1);
+
+        // Redirect to the constructed URL
+        window.location.href = baseUrl;
+    }
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="button-container">
@@ -21,6 +46,29 @@
     <i class="fas fa-university  fa-lg"></i> Back
 </button>
 </div>
-<h2>Customer Details</h2>
-{{ table|safe }}
+<!-- <h2>Customer Search</h2> -->
+<h1>Search Customers</h1>
+<div class="form_container">
+    <label for="customer_id">Customer ID:</label>
+    <input type="text" id="customer_id">
+    <br><br>
+    
+    <label for="first_name">First Name:</label>
+    <input type="text" id="first_name">
+    <br><br>
+    
+    <label for="last_name">Last Name:</label>
+    <input type="text" id="last_name">
+    <br><br>
+    
+    <label for="email">Email:</label>
+    <input type="text" id="email">
+    <br><br>
+    
+    <div class="button-container">
+      <button onclick="buildQueryUrl()">Search</button>
+    </div>
+
+</div>
 {% endblock %}
+
