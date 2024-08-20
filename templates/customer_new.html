@@ -17,7 +17,7 @@
     <button onclick="window.location.href='{{ url_for('modify_customer', customer_id=1) }}'">
         <i class="fas fa-university  fa-lg"></i> Modify Customer
     </button>
-    <button onclick="window.location.href='{{ url_for('get_customers') }}'">
+    <button onclick="window.location.href='{{ url_for('search_customers') }}'">
         <i class="fas fa-university  fa-lg"></i> Search Customers
     </button>
     </div>
@@ -26,22 +26,22 @@
 
 <div class="form-container ">
 <form action="{{ url_for('new_customer') }}" method="POST">
-    <label for="last_name">Last Name:</label>
+    <label for="last_name">Last Name:</label><br>
     <input type="text" id="last_name" name="last_name" required><br>
 
-    <label for="first_name">First Name:</label>
+    <label for="first_name">First Name:</label><br>
     <input type="text" id="first_name" name="first_name" required><br>
 
-    <label for="dob">Date of Birth:</label>
+    <label for="dob">Date of Birth:</label><br>
     <input type="date" id="dob" name="dob" required><br>
 
-    <label for="email">Email:</label>
+    <label for="email">Email:</label><br>
     <input type="email" id="email" name="email" required><br>
 
-    <label for="phone">Phone:</label>
+    <label for="phone">Phone:</label><br>
     <input type="text" id="phone" name="phone" required><br>
 
-    <label for="address">Address:</label>
+    <label for="address">Address:</label><br>
     <input type="text" id="address" name="address" required><br>
 
     <!-- Button to submit the form -->
