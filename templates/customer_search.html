@@ -1,6 +1,8 @@
 {% extends 'layout.html' %}
 
-{% block title %}Customers{% endblock %}
+{% block title %}Customer Search{% endblock %}
+
+{%block script %} {% endblock %}
 
 {% block content %}
 <div class="button-container">
@@ -16,14 +18,9 @@
     <i class="fas fa-university  fa-lg"></i> Modify Customer
 </button>
 <button onclick="window.location.href='{{ url_for('get_customers') }}'">
-    <i class="fas fa-university  fa-lg"></i> Search Customers
+    <i class="fas fa-university  fa-lg"></i> Back
 </button>
 </div>
 <h2>Customer Details</h2>
 {{ table|safe }}
 {% endblock %}
-
-<!-- Have a section for filtering/searching customer records -->
-<!-- Have a button to create a new customer, which send GET request to customers/new -->
-<!-- Have a button to see this customers accounts -->
-<!-- OPTIONAL: Have a button to create a new account for this customer -->

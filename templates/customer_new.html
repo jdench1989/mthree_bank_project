@@ -3,8 +3,28 @@
 {% block title %}New Customer{% endblock %}
 
 {% block content %}
-<p>PLACEHOLDER: Will contain form for new customer details</p>
-<p>Form submits to /customer/new METHOD=POST</p>
+<h2>Customer Creation</h2>
+
+<div class="button-container">
+
+    <!--<button onclick="window.location.href='/customer/new'">
+        <i class="fas fa-users  fa-lg"></i> Create Customer
+    </button> -->
+    
+    <button onclick="window.location.href='{{ url_for('get_customers') }}'">
+        <i class="fas fa-users  fa-lg"></i> Back
+    </button> 
+    <button onclick="window.location.href='{{ url_for('modify_customer', customer_id=1) }}'">
+        <i class="fas fa-university  fa-lg"></i> Modify Customer
+    </button>
+    <button onclick="window.location.href='{{ url_for('get_customers') }}'">
+        <i class="fas fa-university  fa-lg"></i> Search Customers
+    </button>
+    </div>
+
+
+
+<div class="form-container ">
 <form action="{{ url_for('new_customer') }}" method="POST">
     <label for="last_name">Last Name:</label>
     <input type="text" id="last_name" name="last_name" required><br>
@@ -25,8 +45,11 @@
     <input type="text" id="address" name="address" required><br>
 
     <!-- Button to submit the form -->
-    <button type="submit">Create Customer</button>
+    <div class="button-container">
+        <button type="submit">Create Customer</button>
+    </div>
 </form>
+</div>
 
 {% endblock %}
 
