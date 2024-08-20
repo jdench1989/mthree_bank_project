@@ -327,101 +327,83 @@ def update_account(account_id):
         return render_template(url_for('get_accounts', account_id=account_id))
 
 
-@app.route('/transactions')
-def get_transactions():  # Return details of all transactions or search a specific transaction
-    conn, cursor = database_connection()  # Establish database connection
-    sql_query = """SELECT * FROM customers c INNER JOIN accounts a ON c.customer_id = a.customer_id
-                 INNER JOIN accounts_transactions a_tr ON a_tr.account_id= a.account_id
-                 INNER JOIN transactions t on a_tr.transaction_id=t.transaction_id """  # Base SQL query
-    filters = []
+@app.route('/transaction')
+def get_transactions():
+    conn, cursor = database_connection()
+    sql_query = """SELECT * FROM customers c
+                   INNER JOIN accounts a ON c.customer_id = a.customer_id
+                   INNER JOIN accounts_transactions a_tr ON a_tr.account_id = a.account_id
+                   INNER JOIN transactions t ON a_tr.transaction_id = t.transaction_id"""
+    
+    # Mapping query parameters to SQL conditions
+    filters = {
+        'customer_id': 'c.customer_id = %s',
+        'account_id': 'a.account_id = %s',
+        'first_name': 'c.first_name LIKE %s',
+        'last_name': 'c.last_name LIKE %s',
+        'account_num': 'a.account_num = %s',
+        'sort_code': 'a.sort_code = %s',
+        'transaction_time_earliest': 'date(t.transaction_time) >= %s',
+        'transaction_time_latest': 'date(t.transaction_time) <= %s'
+    }
+    
+    # Generate WHERE clause and values without using zip
+    conditions = []
     values = []
 
-    # Check for query parameters
-    # .../customers?customer_id=4
-    customer_id = request.args.get('customer_id')
-    account_id = request.args.get('account_id')
-    first_name = request.args.get('first_name')
-    last_name = request.args.get('last_name')
-    sort_code = request.args.get('sort_code')
-    account_num = request.args.get('account_num')
-    transaction_date_earliest = request.args.get('transaction_time_earliest')
-    transaction_date_latest = request.args.get('transaction_time_latest')
+    for key, value in request.args.items():
+        if key in filters:
+            conditions.append(filters[key])
+            # Adjust value formatting for LIKE queries
+            if 'LIKE' in filters[key]:
+                values.append(f"%{value}%")
+            else:
+                values.append(value)
 
-    # Add filters based on the provided query parameters
-    if customer_id:
-        filters.append("c.customer_id = %s")
-        values.append(customer_id)
-    if account_id:
-        filters.append("a.account_id = %s")
-        values.append(account_id)
-    if first_name:
-        filters.append("c.first_name LIKE %s")
-        values.append(f"%{first_name}%")
-    if last_name:
-        filters.append("c.last_name LIKE %s")
-        values.append(f"%{last_name}%")
-    if account_num:
-        filters.append("a.account_num = %s")
-        values.append(account_num)
-    if sort_code:
-        filters.append("a.sort_code = %s")
-        values.append(sort_code)
+    # Append conditions to the SQL query
+    if conditions:
+        sql_query += " WHERE " + " AND ".join(conditions)
 
-    if transaction_date_earliest:
-        filters.append("date(t.transaction_time) >= %s")
-        values.append(transaction_date_earliest)
-    if transaction_date_latest:
-        filters.append("date(t.transaction_time) <= %s")
-        values.append(transaction_date_latest)
-
-    # Add filters to SQL query if there are any
-    if filters:
-        sql_query += " WHERE " + " AND ".join(filters)
-
-     # Print the query and parameters
-    print("SQL Query:", sql_query)
-    print("Values:", values)
-
-    cursor.execute(sql_query, values)  # Execute SQL query
-    res = cursor.fetchall()  # Extract results
+    cursor.execute(sql_query, values)
+    res = cursor.fetchall()
+    headers = [i[0] for i in cursor.description]
+    
     cursor.close()
     conn.close()
-    return jsonify(res), 200
+    
+    table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
+    return render_template('transaction.html', table=table)
 
 
-@app.route('/transactions', methods=['POST'])
+
+@app.route('/transaction/new', methods=['GET', 'POST'])
 def create_transaction():
-    # Create a new transaction
-    conn, cursor = database_connection()  # Establish database connection
+    if request.method == 'GET':
+        return render_template('transaction_new.html')
+    
+    if request.method == 'POST':
+        # Establish database connection
+        conn, cursor = database_connection()
 
-    # Extract form data
-    form_columns = []
-    form_values = []
-    for key, value in request.form.items():
-        form_columns.append(key)
-        form_values.append(value)
+        # Extract form data
+        form_data = request.form.to_dict()
+        columns = ', '.join(form_data.keys())
+        placeholders = ', '.join(['%s'] * len(form_data))
+        values = list(form_data.values())
 
-    try:
-        # SQL query using placeholders
-        sql_query = "INSERT INTO transactions ("
-        sql_query += ", ".join(form_columns)  # Add column names
-        sql_query += ") VALUES ("
-        sql_query += ", ".join(["%s"] * len(form_values))  # Add placeholders
-        sql_query += ")"
-
-        cursor.execute(sql_query, form_values)  # Execute SQL query
+        # SQL query
+        sql_query = f"INSERT INTO transactions ({columns}) VALUES ({placeholders})"
+        
+        # Execute SQL query
+        cursor.execute(sql_query, values)
         conn.commit()
-        return jsonify({"message": "Transaction created successfully"}), 200
-
-    except Exception as err:
-        # Rollback in case of error
-        conn.rollback()
-        return jsonify({"error": str(err)}), 500
-
-    finally:
-        # Close cursor and connection
+        transaction_id = cursor.lastrowid
+        
+        # Clean up
         cursor.close()
         conn.close()
+
+        return redirect(url_for('get_transactions', transaction_id=transaction_id))
 
 
 if __name__ == '__main__':
