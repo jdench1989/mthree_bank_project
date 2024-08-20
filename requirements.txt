@@ -4,3 +4,5 @@ mysql-connector==2.2.9
 mysql-connector-python==9.0.0
 docker==7.1.0
 python-dotenv==1.0.1
+tabulate
+gunicorn

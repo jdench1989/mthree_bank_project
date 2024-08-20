@@ -1,16 +1,6 @@
 CREATE DATABASE IF NOT EXISTS bank;
 USE bank;
 
-DROP TABLE IF EXISTS accounts_transactions;
-DROP TABLE IF EXISTS transactions;
-DROP TABLE IF EXISTS accounts;
-DROP TABLE IF EXISTS transaction_type;
-DROP TABLE IF EXISTS account_type;
-DROP TABLE IF EXISTS customers;
-DROP TABLE IF EXISTS users;
-
-DROP TRIGGER IF EXISTS after_transaction_insert;
-
 CREATE TABLE IF NOT EXISTS customers (
     customer_id INT PRIMARY KEY AUTO_INCREMENT, 
     status VARCHAR(10) NOT NULL, 
