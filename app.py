@@ -171,9 +171,9 @@ def get_customers():  # Return details of all customers or search a specific cus
 
     cursor.execute(sql_query, values)  # Execute SQL query
     res = cursor.fetchall()  # Extract results
+    headers = [i[0] for i in cursor.description]
     cursor.close()
     conn.close()
-    headers = [i[0] for i in cursor.description]
     table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
     return render_template('customer.html', table=table)
 
