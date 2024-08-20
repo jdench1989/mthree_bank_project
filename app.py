@@ -319,11 +319,26 @@ def get_accounts():
     cursor.execute(sql_query, values)
     res = cursor.fetchall()
     headers = [i[0] for i in cursor.description]
-    
+
     cursor.close()
     conn.close()
     
-    table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
+    # Add Modify and Delete headers
+    headers.extend(['Modify'])
+    
+    # Create the table with Modify and Delete buttons
+    table_html = '<table border="1">'
+    table_html += '<tr>' + ''.join(f'<th>{header}</th>' for header in headers) + '</tr>'
+    
+    for row in res:
+        row_html = ''.join(f'<td>{cell}</td>' for cell in row)
+        account_id = row[0]  # Assuming customer_id is the first column
+        modify_button = f'<td><a href="/account/modify/{account_id}"><button>Modify</button></a></td>'
+        table_html += f'<tr>{row_html}{modify_button}</tr>'
+    
+    table_html += '</table>'
+    
+    table = f'<div class="content">{table_html}</div>'
     return render_template('account.html', table=table)
 
 @app.route('/account/search', methods=['GET'])
@@ -355,11 +370,28 @@ def create_account():
         return redirect(url_for('get_accounts', account_id=account_id))
 
 
-@app.route('/account/<account_id>', methods=['GET', 'PUT'])
-def update_account(account_id):
+@app.route('/account/modify/<account_id>', methods=['GET', 'POST'])
+def modify_account(account_id):
     if request.method == 'GET':
-        return render_template('account_modify.html', account_id=account_id)
-    elif request.method == "PUT":
+        conn, cursor = database_connection()
+        cursor.execute("SELECT * FROM accounts WHERE account_id = %s;", (account_id,))
+        account = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        # Convert tuple to a dictionary with column names
+        account_dict = {
+            'account_id': account[0],
+            'status': account[1],
+            'last_name': account[2],
+            'first_name': account[3],
+            'dob': account[4],
+            'email': account[5],
+            'phone': account[6],
+            'address': account[7]
+        }
+        return render_template('account_modify.html', account=account_dict)
+    
+    elif request.method == "POST":
         conn, cursor = database_connection()  # Establish database connection
         status = request.form.get('status')
         sql_query = "UPDATE accounts SET status = %s WHERE account_id = %s"
@@ -367,7 +399,7 @@ def update_account(account_id):
         conn.commit()
         cursor.close()
         conn.close()
-        return render_template(url_for('get_accounts', account_id=account_id))
+        return redirect(url_for('get_accounts', account_id=account_id))
 
 
 @app.route('/transaction')
