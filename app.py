@@ -173,7 +173,9 @@ def get_customers():
     table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
     return render_template('customer.html', table=table)
 
-
+@app.route('/customer/search', methods=['GET'])
+def search_customers():
+    return render_template('customer_search.html')
 
 @app.route('/customer/new', methods=['GET', 'POST'])
 def new_customer():  # Create a new customer record in the database
