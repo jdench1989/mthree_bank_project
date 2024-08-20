@@ -127,8 +127,10 @@ def profile():
     if 'loggedin' in session:
         conn, cursor = database_connection()
         # We need all the account info for the user so we can display it on the profile page
-        cursor.execute('SELECT * FROM users WHERE id = %s', (session['id'],))
-        account = cursor.fetchone()
+        dict_cursor = conn.cursor(dictionary=True)
+        dict_cursor.execute('SELECT * FROM users WHERE id = %s', (session['id'],))
+        account = dict_cursor.fetchone()
+        dict_cursor.close()
         cursor.close()
         conn.close()
         # Show the profile page with account info
@@ -139,6 +141,7 @@ def profile():
 
 @app.route('/customer')
 def get_customers():
+    msg = request.args.get('msg')
     conn, cursor = database_connection()
     sql_query = "SELECT * FROM customers"
     
@@ -166,12 +169,29 @@ def get_customers():
     cursor.execute(sql_query, values)
     res = cursor.fetchall()
     headers = [i[0] for i in cursor.description]
-    
+
     cursor.close()
     conn.close()
     
-    table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
-    return render_template('customer.html', table=table)
+    # Add Modify and Delete headers
+    headers.extend(['Modify', 'Delete'])
+    
+    # Create the table with Modify and Delete buttons
+    table_html = '<table border="1">'
+    table_html += '<tr>' + ''.join(f'<th>{header}</th>' for header in headers) + '</tr>'
+    
+    for row in res:
+        row_html = ''.join(f'<td>{cell}</td>' for cell in row)
+        customer_id = row[0]  # Assuming customer_id is the first column
+        modify_button = f'<td><a href="/customer/modify/{customer_id}"><button>Modify</button></a></td>'
+        delete_button = f'<td><a href="/customer/delete/{customer_id}"><button>Delete</button></a></td>'
+        table_html += f'<tr>{row_html}{modify_button}{delete_button}</tr>'
+    
+    table_html += '</table>'
+    
+    table = f'<div class="content">{table_html}</div>'
+    return render_template('customer.html', table=table, msg=msg)
+
 
 @app.route('/customer/search', methods=['GET'])
 def search_customers():
@@ -185,7 +205,7 @@ def new_customer():  # Create a new customer record in the database
         conn, cursor = database_connection()  # Establish database connection
 
         # Extract form data
-        form_values = ['OPEN']
+        form_values = ['ACTIVE']
         for key in request.form:
             form_values.append(request.form[key])
 
@@ -200,51 +220,70 @@ def new_customer():  # Create a new customer record in the database
         return redirect(url_for('get_customers', customer_id=customer_id))
 
 
-@app.route('/customer/<int:customer_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/customer/modify/<int:customer_id>', methods=['GET', 'POST'])
 def modify_customer(customer_id):  # Update a customer record in the database
     if request.method == 'GET':
-        return render_template('customer_modify.html', customer_id=customer_id)
-    
-    elif request.method == 'PUT':
-        # Extract columns and values to be updated from the request JSON
-        form_values = []
-        for key in request.form:
-            form_values.append(request.form[key])
+        conn, cursor = database_connection()
+        cursor.execute("SELECT * FROM customers WHERE customer_id = %s;", (customer_id,))
+        customer = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        # Convert tuple to a dictionary with column names
+        customer_dict = {
+            'customer_id': customer[0],
+            'status': customer[1],
+            'last_name': customer[2],
+            'first_name': customer[3],
+            'dob': customer[4],
+            'email': customer[5],
+            'phone': customer[6],
+            'address': customer[7]
+        }
+        return render_template('customer_modify.html', customer=customer_dict)
+
+    elif request.method == 'POST':
+        # Extract columns and values to be updated from the request form
+        form_values = [
+            request.form['status'],
+            request.form['last_name'],
+            request.form['first_name'],
+            request.form['dob'],
+            request.form['email'],
+            request.form['phone'],
+            request.form['address'],
+            customer_id  # Add customer ID at the end
+        ]
 
         # Compile columns and values into a SQL query using placeholders
         sql_query = """UPDATE customers SET 
         status = %s, last_name = %s, first_name = %s, dob = %s, email = %s, phone = %s, address = %s
         WHERE customer_id = %s;
         """
-        form_values.append(customer_id)
-        conn, cursor = database_connection()  # Establish database connection
-        cursor.execute(sql_query, form_values)  # Execute the query
+
+        conn, cursor = database_connection()
+        cursor.execute(sql_query, form_values)
         conn.commit()
         cursor.close()
         conn.close()
         return redirect(url_for('get_customers', customer_id=customer_id))
     
-    elif request.method == "DELETE":
-        conn, cursor = database_connection()  # Establish database connection
-
-        # Check the database to see if the provided customer has an associated account
-        cursor.execute(
-            "SELECT account_id FROM accounts WHERE customer_id = %s LIMIT 1;", [customer_id])
-        account_record = cursor.fetchone()  # Fetch the first result if it exists
-
-        res = {}
-        if account_record:  # Check if account_record is not None
-            res["success"] = "false"
-            res["message"] = "Customer cannot be deleted. Customer record is associated with an account record. Deactivate customer instead."
-        else:  # If there is no account record then the customer can be safely deleted
-            cursor.execute(
-                "DELETE FROM customers WHERE customer_id = %s", [customer_id])
-            res["success"] = "true"
-            res["message"] = "Customer record deleted successfully."
+@app.route('/customer/delete/<int:customer_id>', methods = ["GET"])
+def delete_customer(customer_id):
+    conn, cursor = database_connection()  # Establish database connection
+    # Check the database to see if the provided customer has an associated account
+    cursor.execute(
+        "SELECT account_id FROM accounts WHERE customer_id = %s LIMIT 1;", [customer_id])
+    account_record = cursor.fetchone()  # Fetch the first result if it exists
+    if account_record:
+        msg = 'Customer has an account and cannot be deleted. Deactivate instead'
+        return redirect(url_for('get_customers', msg=msg))
+    else:
+        cursor.execute("DELETE FROM customers WHERE customer_id = %s", [customer_id])
         conn.commit()
         cursor.close()
         conn.close()
-        return render_template('customer_modify.html', res=res)
+        msg = 'Customer record deleted successfully'
+        return redirect(url_for('get_customers', msg=msg))
 
 
 @app.route('/account')
