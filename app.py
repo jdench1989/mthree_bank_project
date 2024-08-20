@@ -138,44 +138,41 @@ def profile():
 
 
 @app.route('/customer')
-def get_customers():  # Return details of all customers or search a specific customer
-    conn, cursor = database_connection()  # Establish database connection
-    sql_query = "SELECT * FROM customers"  # Base SQL query
-    filters = []
+def get_customers():
+    conn, cursor = database_connection()
+    sql_query = "SELECT * FROM customers"
+    
+    # Mapping query parameters to SQL conditions
+    filters = {
+        'customer_id': 'customer_id = %s',
+        'first_name': 'first_name LIKE %s',
+        'last_name': 'last_name LIKE %s',
+        'email': 'email LIKE %s'
+    }
+    
+    # Generate WHERE clause and values without using zip
+    conditions = []
     values = []
 
-    # Check for query parameters
-    # .../customer?customer_id=4
-    customer_id = request.args.get('customer_id')
-    first_name = request.args.get('first_name')
-    last_name = request.args.get('last_name')
-    email = request.args.get('email')
+    for key, value in request.args.items():
+        if key in filters:
+            conditions.append(filters[key])
+            values.append(f"%{value}%" if 'LIKE' in filters[key] else value)
 
-    # Add filters based on the provided query parameters
-    if customer_id:
-        filters.append("customer_id = %s")
-        values.append(customer_id)
-    if first_name:
-        filters.append("first_name LIKE %s")
-        values.append(f"%{first_name}%")
-    if last_name:
-        filters.append("last_name LIKE %s")
-        values.append(f"%{last_name}%")
-    if email:
-        filters.append("email LIKE %s")
-        values.append(f"%{email}%")
+    # Append conditions to the SQL query
+    if conditions:
+        sql_query += " WHERE " + " AND ".join(conditions)
 
-    # Add filters to SQL query if there are any
-    if filters:
-        sql_query += " WHERE " + " AND ".join(filters)
-
-    cursor.execute(sql_query, values)  # Execute SQL query
-    res = cursor.fetchall()  # Extract results
+    cursor.execute(sql_query, values)
+    res = cursor.fetchall()
     headers = [i[0] for i in cursor.description]
+    
     cursor.close()
     conn.close()
+    
     table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
     return render_template('customer.html', table=table)
+
 
 
 @app.route('/customer/new', methods=['GET', 'POST'])
@@ -250,62 +247,44 @@ def modify_customer(customer_id):  # Update a customer record in the database
 
 @app.route('/account')
 def get_accounts():
-    # Establish database connection
     conn, cursor = database_connection()
-
-    # Base SQL query
     sql_query = "SELECT * FROM accounts"
-    filters = []
+    
+    # Mapping query parameters to SQL conditions
+    filters = {
+        'account_id': 'account_id = %s',
+        'sort_code': 'sort_code = %s',
+        'account_num': 'account_num = %s',
+        'status': 'status = %s',
+        'balance': 'balance = %s',
+        'type_id': 'type_id = %s',
+        'customer_id': 'customer_id = %s',
+        'creation_date': 'creation_date = %s'
+    }
+    
+    # Generate WHERE clause and values without using zip
+    conditions = []
     values = []
 
-    # check for query parameters
-    sort_code = request.args.get('sort_code')
-    account_id = request.args.get('account_id')
-    account_num = request.args.get('account_num')
-    status = request.args.get('status')
-    balance = request.args.get('balance')
-    type_id = request.args.get('type_id')
-    customer_id = request.args.get('customer_id')
-    creation_date = request.args.get('creation_date')
+    for key, value in request.args.items():
+        if key in filters:
+            conditions.append(filters[key])
+            values.append(value)
 
-    # Add filters based on the provided query parameters
+    # Append conditions to the SQL query
+    if conditions:
+        sql_query += " WHERE " + " AND ".join(conditions)
 
-    if account_id:
-        filters.append("account_id = %s")
-        values.append(account_id)
-    if sort_code:
-        filters.append("sort_code = %s")
-        values.append(sort_code)
-    if account_num:
-        filters.append("account_num = %s")
-        values.append(account_num)
-    if status:
-        filters.append("status = %s")
-        values.append(status)
-    if balance:
-        filters.append("balance = %s")
-        values.append(balance)
-    if sort_code:
-        filters.append("type_id = %s")
-        values.append(type_id)
-    if sort_code:
-        filters.append("customer_id = %s")
-        values.append(customer_id)
-    if sort_code:
-        filters.append("creation_date = %s")
-        values.append(creation_date)
-
-    # Add filters to SQL query if there are any
-    if filters:
-        sql_query += " WHERE " + " AND ".join(filters)
-
-    cursor.execute(sql_query, values)  # Execute SQL query
-    res = cursor.fetchall()  # Extract results
+    cursor.execute(sql_query, values)
+    res = cursor.fetchall()
+    headers = [i[0] for i in cursor.description]
+    
     cursor.close()
     conn.close()
-    headers = [i[0] for i in cursor.description]
+    
     table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
     return render_template('account.html', table=table)
+
 
 
 @app.route('/accounts', methods=['POST'])
