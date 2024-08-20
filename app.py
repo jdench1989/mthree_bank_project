@@ -4,6 +4,7 @@ import hashlib
 import re
 import os
 from dotenv import load_dotenv
+from tabulate import tabulate
 
 # Load environment variables from .env file to local environment variables
 load_dotenv()
@@ -172,7 +173,9 @@ def get_customers():  # Return details of all customers or search a specific cus
     res = cursor.fetchall()  # Extract results
     cursor.close()
     conn.close()
-    return render_template('customer.html', res=res, )
+    headers = [i[0] for i in cursor.description]
+    table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
+    return render_template('customer.html', table=table)
 
 
 @app.route('/customer/new', methods=['GET', 'POST'])

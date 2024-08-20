@@ -37,9 +37,9 @@ def seed_database(script_paths):
 
 # Define a list of paths for script files to be executed
 script_paths = [
-    "db/seed_database_table_setup.sql",
-    "db/seed_database_trans_trigger.sql",
-    "db/seed_database_dummy_data.sql"
+    "db/seeds/table_setup.sql",
+    "db/seeds/triggers.sql",
+    "db/seeds/dummy_data.sql"
 ]
 
 # Call the seed_database function

@@ -9,7 +9,7 @@ db_config = {
 def database_connection():
     # Connect to the MySQL server without specifying a database
     conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     # Check if the 'bank' database exists
     cursor.execute("SHOW DATABASES LIKE 'bank';")
