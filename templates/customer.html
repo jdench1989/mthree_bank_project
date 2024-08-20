@@ -5,25 +5,16 @@
 {% block content %}
 <div class="button-container">
 
-<!--<button onclick="window.location.href='/customer/new'">
-    <i class="fas fa-users  fa-lg"></i> Create Customer
-</button> -->
-
 <button onclick="window.location.href='{{ url_for('new_customer') }}'">
     <i class="fas fa-users  fa-lg"></i> Create Customer
 </button> 
-<button onclick="window.location.href='{{ url_for('modify_customer', customer_id=1) }}'">
-    <i class="fas fa-university  fa-lg"></i> Modify Customer
-</button>
 <button onclick="window.location.href='{{ url_for('search_customers') }}'">
     <i class="fas fa-university  fa-lg"></i> Search Customers
 </button>
 </div>
 <h2>Customer Details</h2>
+{% if msg %}
+    <div class="msg">{{ msg }}</div>
+{% endif %}
 {{ table|safe }}
 {% endblock %}
-
-<!-- Have a section for filtering/searching customer records -->
-<!-- Have a button to create a new customer, which send GET request to customers/new -->
-<!-- Have a button to see this customers accounts -->
-<!-- OPTIONAL: Have a button to create a new account for this customer -->
