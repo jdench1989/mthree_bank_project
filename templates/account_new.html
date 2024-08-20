@@ -3,6 +3,47 @@
 {% block title %}New Account{% endblock %}
 
 {% block content %}
-<p>PLACEHOLDER: Will contain form for new account details</p>
-<p>Form submits to /account/new METHOD=POST</p>
+
+<div class="button-container">
+
+    <!--<button onclick="window.location.href='/customer/new'">
+        <i class="fas fa-users  fa-lg"></i> Create Customer
+    </button> -->
+    
+    <button onclick="window.location.href='{{ url_for('get_accounts') }}'">
+        <i class="fas fa-users  fa-lg"></i> Back
+    </button> 
+    <button onclick="window.location.href='{{ url_for('search_accounts') }}'">
+        <i class="fas fa-university  fa-lg"></i> Search Accounts
+    </button>
+    </div>
+
+
+
+<div class="form-container ">
+<form action="{{ url_for('create_account') }}" method="POST">
+    <label for="account_num">Account Number:</label><br>
+    <input type="text" id="account_num" name="account_num" required><br>
+
+    <label for="sort_code">Sort Code <Code></Code>:</label><br>
+    <input type="text" id="Sort_code" name="first_name" required><br>
+
+    <label for="type_id">Type ID:</label><br>
+    <input type="text" id="type_id" name="type_id" required><br>
+
+    <label for="status">Status:</label><br>
+    <input type="text" id="status" name="status" required><br>
+
+    <label for="Balance">Balance:</label><br>
+    <input type="number" id="Balance" name="Balance" required><br>
+
+    <label for="customer_id">Customer ID:</label><br>
+    <input type="number" id="customer_id" name="customer_id" required><br>
+
+    <!-- Button to submit the form -->
+    <div class="button-container">
+        <button type="submit">Create Account</button>
+    </div>
+</form>
+</div>
 {% endblock %}
