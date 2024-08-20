@@ -138,44 +138,41 @@ def profile():
 
 
 @app.route('/customer')
-def get_customers():  # Return details of all customers or search a specific customer
-    conn, cursor = database_connection()  # Establish database connection
-    sql_query = "SELECT * FROM customers"  # Base SQL query
-    filters = []
+def get_customers():
+    conn, cursor = database_connection()
+    sql_query = "SELECT * FROM customers"
+    
+    # Mapping query parameters to SQL conditions
+    filters = {
+        'customer_id': 'customer_id = %s',
+        'first_name': 'first_name LIKE %s',
+        'last_name': 'last_name LIKE %s',
+        'email': 'email LIKE %s'
+    }
+    
+    # Generate WHERE clause and values without using zip
+    conditions = []
     values = []
 
-    # Check for query parameters
-    # .../customer?customer_id=4
-    customer_id = request.args.get('customer_id')
-    first_name = request.args.get('first_name')
-    last_name = request.args.get('last_name')
-    email = request.args.get('email')
+    for key, value in request.args.items():
+        if key in filters:
+            conditions.append(filters[key])
+            values.append(f"%{value}%" if 'LIKE' in filters[key] else value)
 
-    # Add filters based on the provided query parameters
-    if customer_id:
-        filters.append("customer_id = %s")
-        values.append(customer_id)
-    if first_name:
-        filters.append("first_name LIKE %s")
-        values.append(f"%{first_name}%")
-    if last_name:
-        filters.append("last_name LIKE %s")
-        values.append(f"%{last_name}%")
-    if email:
-        filters.append("email LIKE %s")
-        values.append(f"%{email}%")
+    # Append conditions to the SQL query
+    if conditions:
+        sql_query += " WHERE " + " AND ".join(conditions)
 
-    # Add filters to SQL query if there are any
-    if filters:
-        sql_query += " WHERE " + " AND ".join(filters)
-
-    cursor.execute(sql_query, values)  # Execute SQL query
-    res = cursor.fetchall()  # Extract results
+    cursor.execute(sql_query, values)
+    res = cursor.fetchall()
     headers = [i[0] for i in cursor.description]
+    
     cursor.close()
     conn.close()
+    
     table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
     return render_template('customer.html', table=table)
+
 
 
 @app.route('/customer/new', methods=['GET', 'POST'])
@@ -250,208 +247,163 @@ def modify_customer(customer_id):  # Update a customer record in the database
 
 @app.route('/account')
 def get_accounts():
-    # Establish database connection
     conn, cursor = database_connection()
-
-    # Base SQL query
     sql_query = "SELECT * FROM accounts"
-    filters = []
+    
+    # Mapping query parameters to SQL conditions
+    filters = {
+        'account_id': 'account_id = %s',
+        'sort_code': 'sort_code = %s',
+        'account_num': 'account_num = %s',
+        'status': 'status = %s',
+        'balance': 'balance = %s',
+        'type_id': 'type_id = %s',
+        'customer_id': 'customer_id = %s',
+        'creation_date': 'creation_date = %s'
+    }
+    
+    # Generate WHERE clause and values without using zip
+    conditions = []
     values = []
 
-    # check for query parameters
-    sort_code = request.args.get('sort_code')
-    account_id = request.args.get('account_id')
-    account_num = request.args.get('account_num')
-    status = request.args.get('status')
-    balance = request.args.get('balance')
-    type_id = request.args.get('type_id')
-    customer_id = request.args.get('customer_id')
-    creation_date = request.args.get('creation_date')
+    for key, value in request.args.items():
+        if key in filters:
+            conditions.append(filters[key])
+            values.append(value)
 
-    # Add filters based on the provided query parameters
+    # Append conditions to the SQL query
+    if conditions:
+        sql_query += " WHERE " + " AND ".join(conditions)
 
-    if account_id:
-        filters.append("account_id = %s")
-        values.append(account_id)
-    if sort_code:
-        filters.append("sort_code = %s")
-        values.append(sort_code)
-    if account_num:
-        filters.append("account_num = %s")
-        values.append(account_num)
-    if status:
-        filters.append("status = %s")
-        values.append(status)
-    if balance:
-        filters.append("balance = %s")
-        values.append(balance)
-    if sort_code:
-        filters.append("type_id = %s")
-        values.append(type_id)
-    if sort_code:
-        filters.append("customer_id = %s")
-        values.append(customer_id)
-    if sort_code:
-        filters.append("creation_date = %s")
-        values.append(creation_date)
-
-    # Add filters to SQL query if there are any
-    if filters:
-        sql_query += " WHERE " + " AND ".join(filters)
-
-    cursor.execute(sql_query, values)  # Execute SQL query
-    res = cursor.fetchall()  # Extract results
+    cursor.execute(sql_query, values)
+    res = cursor.fetchall()
+    headers = [i[0] for i in cursor.description]
+    
     cursor.close()
     conn.close()
-    headers = [i[0] for i in cursor.description]
+    
     table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
     return render_template('account.html', table=table)
 
 
-@app.route('/accounts', methods=['POST'])
+
+@app.route('/account/new', methods=['GET', 'POST'])
 def create_account():
-    # Connect to the database
-    conn, cursor = database_connection()
+    if request.method == 'GET':
+        return render_template('account_new.html')
+    elif request.method == 'POST':
 
-    # Extract form data
-    form_values = []
-    for key in request.form:
-        form_values.append(request.form[key])
+        # Connect to the database
+        conn, cursor = database_connection()
 
-    # SQL query using placeholders
-    sql_query = "INSERT INTO accounts (account_num, sort_code, type_id, status, balance, customer_id) VALUES (%s, %s, %s, %s, %s, %s);"
+        # Extract form data
+        form_values = []
+        for key in request.form:
+            form_values.append(request.form[key])
 
-    cursor.execute(sql_query, form_values)  # Execute SQL query
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({"message": "Account created successfully"}), 200
-
-
-@app.route('/accounts/<account_id>', methods=['PUT'])
-def update_account(account_id):
-    conn, cursor = database_connection()  # Establish database connection
-    # Extract columns and values to be updated from the request JSON
-    # data = request.get_json()
-    status = request.form.get('status')
-
-    # check if status is provided in request
-    if not status:
-        return jsonify({"error : missing 'status' field"}), 400
-
-    # execute the query
-    try:
-        sql_query = "UPDATE accounts SET status = %s WHERE account_id = %s"
-        cursor.execute(sql_query, (status, account_id))
-        conn.commit()
-        return jsonify({"message": "account status updated successfully"}), 200
-
-    except Exception as err:
-        # Rollback in case of error
-        conn.rollback()
-        return jsonify({"error": str(err)}), 500
-
-    finally:
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
-
-
-@app.route('/transactions')
-def get_transactions():  # Return details of all transactions or search a specific transaction
-    conn, cursor = database_connection()  # Establish database connection
-    sql_query = """SELECT * FROM customers c INNER JOIN accounts a ON c.customer_id = a.customer_id
-                 INNER JOIN accounts_transactions a_tr ON a_tr.account_id= a.account_id
-                 INNER JOIN transactions t on a_tr.transaction_id=t.transaction_id """  # Base SQL query
-    filters = []
-    values = []
-
-    # Check for query parameters
-    # .../customers?customer_id=4
-    customer_id = request.args.get('customer_id')
-    account_id = request.args.get('account_id')
-    first_name = request.args.get('first_name')
-    last_name = request.args.get('last_name')
-    sort_code = request.args.get('sort_code')
-    account_num = request.args.get('account_num')
-    transaction_date_earliest = request.args.get('transaction_time_earliest')
-    transaction_date_latest = request.args.get('transaction_time_latest')
-
-    # Add filters based on the provided query parameters
-    if customer_id:
-        filters.append("c.customer_id = %s")
-        values.append(customer_id)
-    if account_id:
-        filters.append("a.account_id = %s")
-        values.append(account_id)
-    if first_name:
-        filters.append("c.first_name LIKE %s")
-        values.append(f"%{first_name}%")
-    if last_name:
-        filters.append("c.last_name LIKE %s")
-        values.append(f"%{last_name}%")
-    if account_num:
-        filters.append("a.account_num = %s")
-        values.append(account_num)
-    if sort_code:
-        filters.append("a.sort_code = %s")
-        values.append(sort_code)
-
-    if transaction_date_earliest:
-        filters.append("date(t.transaction_time) >= %s")
-        values.append(transaction_date_earliest)
-    if transaction_date_latest:
-        filters.append("date(t.transaction_time) <= %s")
-        values.append(transaction_date_latest)
-
-    # Add filters to SQL query if there are any
-    if filters:
-        sql_query += " WHERE " + " AND ".join(filters)
-
-     # Print the query and parameters
-    print("SQL Query:", sql_query)
-    print("Values:", values)
-
-    cursor.execute(sql_query, values)  # Execute SQL query
-    res = cursor.fetchall()  # Extract results
-    cursor.close()
-    conn.close()
-    return jsonify(res), 200
-
-
-@app.route('/transactions', methods=['POST'])
-def create_transaction():
-    # Create a new transaction
-    conn, cursor = database_connection()  # Establish database connection
-
-    # Extract form data
-    form_columns = []
-    form_values = []
-    for key, value in request.form.items():
-        form_columns.append(key)
-        form_values.append(value)
-
-    try:
         # SQL query using placeholders
-        sql_query = "INSERT INTO transactions ("
-        sql_query += ", ".join(form_columns)  # Add column names
-        sql_query += ") VALUES ("
-        sql_query += ", ".join(["%s"] * len(form_values))  # Add placeholders
-        sql_query += ")"
+        sql_query = "INSERT INTO accounts (account_num, sort_code, type_id, status, balance, customer_id) VALUES (%s, %s, %s, %s, %s, %s);"
 
         cursor.execute(sql_query, form_values)  # Execute SQL query
         conn.commit()
-        return jsonify({"message": "Transaction created successfully"}), 200
-
-    except Exception as err:
-        # Rollback in case of error
-        conn.rollback()
-        return jsonify({"error": str(err)}), 500
-
-    finally:
-        # Close cursor and connection
+        account_id = cursor.lastrowid
         cursor.close()
         conn.close()
+        return redirect(url_for('get_accounts', account_id=account_id))
+
+
+@app.route('/account/<account_id>', methods=['GET', 'PUT'])
+def update_account(account_id):
+    if request.method == 'GET':
+        return render_template('account_modify.html', account_id=account_id)
+    elif request.method == "PUT":
+        conn, cursor = database_connection()  # Establish database connection
+        status = request.form.get('status')
+        sql_query = "UPDATE accounts SET status = %s WHERE account_id = %s"
+        cursor.execute(sql_query, (status, account_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return render_template(url_for('get_accounts', account_id=account_id))
+
+
+@app.route('/transaction')
+def get_transactions():
+    conn, cursor = database_connection()
+    sql_query = """SELECT * FROM customers c
+                   INNER JOIN accounts a ON c.customer_id = a.customer_id
+                   INNER JOIN accounts_transactions a_tr ON a_tr.account_id = a.account_id
+                   INNER JOIN transactions t ON a_tr.transaction_id = t.transaction_id"""
+    
+    # Mapping query parameters to SQL conditions
+    filters = {
+        'customer_id': 'c.customer_id = %s',
+        'account_id': 'a.account_id = %s',
+        'first_name': 'c.first_name LIKE %s',
+        'last_name': 'c.last_name LIKE %s',
+        'account_num': 'a.account_num = %s',
+        'sort_code': 'a.sort_code = %s',
+        'transaction_time_earliest': 'date(t.transaction_time) >= %s',
+        'transaction_time_latest': 'date(t.transaction_time) <= %s'
+    }
+    
+    # Generate WHERE clause and values without using zip
+    conditions = []
+    values = []
+
+    for key, value in request.args.items():
+        if key in filters:
+            conditions.append(filters[key])
+            # Adjust value formatting for LIKE queries
+            if 'LIKE' in filters[key]:
+                values.append(f"%{value}%")
+            else:
+                values.append(value)
+
+    # Append conditions to the SQL query
+    if conditions:
+        sql_query += " WHERE " + " AND ".join(conditions)
+
+    cursor.execute(sql_query, values)
+    res = cursor.fetchall()
+    headers = [i[0] for i in cursor.description]
+    
+    cursor.close()
+    conn.close()
+    
+    table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
+    return render_template('transaction.html', table=table)
+
+
+
+@app.route('/transaction/new', methods=['GET', 'POST'])
+def create_transaction():
+    if request.method == 'GET':
+        return render_template('transaction_new.html')
+    
+    if request.method == 'POST':
+        # Establish database connection
+        conn, cursor = database_connection()
+
+        # Extract form data
+        form_data = request.form.to_dict()
+        columns = ', '.join(form_data.keys())
+        placeholders = ', '.join(['%s'] * len(form_data))
+        values = list(form_data.values())
+
+        # SQL query
+        sql_query = f"INSERT INTO transactions ({columns}) VALUES ({placeholders})"
+        
+        # Execute SQL query
+        cursor.execute(sql_query, values)
+        conn.commit()
+        transaction_id = cursor.lastrowid
+        
+        # Clean up
+        cursor.close()
+        conn.close()
+
+        return redirect(url_for('get_transactions', transaction_id=transaction_id))
 
 
 if __name__ == '__main__':
