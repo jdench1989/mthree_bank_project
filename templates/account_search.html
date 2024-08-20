@@ -1,0 +1,67 @@
+{% extends 'layout.html' %}
+
+{% block title %}Account Search{% endblock %}
+
+{%block script %} 
+<script>
+    function buildQueryUrl() {
+        // Get input values
+        const accountID = document.getElementById('account_id').value;
+        const account_num = document.getElementById('account_num').value;
+        const sort_code = document.getElementById('sort_code').value;
+        const status = document.getElementById('status').value;
+        const customer_id = document.getElementById('customer_id').value;
+
+        // Base URL
+        let baseUrl = '/account?';
+
+        // Append parameters to URL
+        if (accountID) baseUrl += `account_id=${encodeURIComponent(accountID)}&`;
+        if (account_num) baseUrl += `account_num=${encodeURIComponent(account_num)}&`;
+        if (sort_code) baseUrl += `sort_code=${encodeURIComponent(sort_code)}&`;
+        if (status) baseUrl += `status=${encodeURIComponent(status)}&`;
+        if (customer_id) baseUrl += `customer_id=${encodeURIComponent(customer_id)}&`;
+
+        // Remove trailing '&'
+        baseUrl = baseUrl.slice(0, -1);
+
+        // Redirect to the constructed URL
+        window.location.href = baseUrl;
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="button-container">
+
+<!--<button onclick="window.location.href='/customer/new'">
+    <i class="fas fa-users  fa-lg"></i> Create Customer
+</button> -->
+
+<button onclick="window.location.href='{{ url_for('create_account') }}'">
+    <i class="fas fa-users  fa-lg"></i> Create Account
+</button> 
+<button onclick="window.location.href='{{ url_for('get_accounts') }}'">
+    <i class="fas fa-university  fa-lg"></i> Back
+</button>
+</div>
+<!-- <h2>Customer Search</h2> -->
+<h1>Search Accounts</h1>
+<div class="search_form-container">
+    <label for="account_id">Account ID:</label><br>
+    <input type="number" id="account_id"><br>
+    <label for="account_num">Account Num:</label><br>
+    <input type="text" id="account_num"><br>
+    <label for="sort_code">Sort Code:</label><br>
+    <input type="text" id="sort_code"><br>
+    <label for="status">Status:</label><br>
+    <input type="text" id="status"><br>
+    <label for="customer_id">customer_id:</label><br>
+    <input type="number" id="customer_id"><br>
+    <br>
+    <div class="button-container">
+      <button onclick="buildQueryUrl()">Search</button>
+    </div>
+</div>
+{% endblock %}
+

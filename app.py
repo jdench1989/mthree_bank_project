@@ -326,7 +326,9 @@ def get_accounts():
     table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
     return render_template('account.html', table=table)
 
-
+@app.route('/account/search', methods=['GET'])
+def search_accounts():
+    return render_template('account_search.html')
 
 @app.route('/account/new', methods=['GET', 'POST'])
 def create_account():

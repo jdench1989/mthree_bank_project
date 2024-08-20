@@ -4,6 +4,17 @@
 
 {% block content %}
 <h2>Account Details</h2>
+<div class="button-container">
+
+    <button onclick="window.location.href='{{ url_for('create_account') }}'">
+        <i class="fas fa-users  fa-lg"></i> Create Account
+    </button> 
+    <button onclick="window.location.href='{{ url_for('search_accounts') }}'">
+        <i class="fas fa-university  fa-lg"></i> Search Accounts
+    </button>
+   
+    </div>
+
 {{ table|safe }}
 {% endblock %}
 
