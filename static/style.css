@@ -145,3 +145,41 @@ body.loggedin {
   padding: 5px;
   margin: 0 0 10px 0;
 }
+.button-container {
+    display: flex;
+    justify-content: center; /* Center buttons horizontally */
+    gap: 1rem; /* Space between buttons */
+    margin-top: 1.5rem; /* Space above the button container */
+}
+/* General button styling */
+.button-container button {
+    background-color: #007bff; /* Primary color */
+    color: #fff; /* Text color */
+    border: none; /* Remove default border */
+    border-radius: 0.375rem; /* Rounded corners */
+    padding: 0.5rem 1rem; /* Padding inside button */
+    font-size: 1rem; /* Font size */
+    font-family: Arial, sans-serif; /* Font family */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Space between icon and text */
+}
+ 
+/* Button hover state */
+.button-container button:hover {
+    background-color: #0056b3; /* Darker color on hover */
+    transform: scale(1.05); /* Slightly enlarge button */
+}
+ 
+/* Button focus state */
+.button-container button:focus {
+    outline: 2px solid #0056b3; /* Focus outline color */
+    outline-offset: 2px; /* Space between outline and button */
+}
+ 
+/* Button icon styling */
+.button-container i {
+    font-size: 1.25rem; /* Icon size */
+}

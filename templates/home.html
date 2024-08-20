@@ -4,10 +4,16 @@
 
 {% block content %}
 <h2>Home Page</h2>
-<p>Welcome back, {{ username }}!</p>
-<ul>
-    <li><a href="">Customers</a></li>
-    <li>Accounts</li>
-    <li>Transactions</li>
-</ul>
+<p>Test Welcome back, {{ username }}!</p>
+<div class="button-container">
+    <button onclick="window.location.href='{{ url_for('get_customers') }}'">
+        <i class="fas fa-users  fa-lg"></i> Customers
+    </button>
+    <button onclick="window.location.href='{{ url_for('get_accounts') }}'">
+        <i class="fas fa-university  fa-lg"></i> Accounts
+    </button>
+    <button onclick="window.location.href='{{ url_for('get_transactions') }}'">
+        <i class="fas fa-exchange-alt  fa-lg"></i> Transactions
+    </button>
+</div>
 {% endblock %}
