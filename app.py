@@ -19,7 +19,7 @@ def index():
 
 
 # http://localhost:5000/bank/ - the following will be our login page, which will use both GET and POST requests
-@app.route('/bank/', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     conn, cursor = database_connection()
     # Output a message if something goes wrong...
@@ -44,8 +44,8 @@ def login():
         if account:
             # Create session data, we can access this data in other routes
             session['loggedin'] = True
-            session['id'] = account['id']
-            session['username'] = account['username']
+            session['id'] = account[0]
+            session['username'] = account[1]
             # Redirect to home page
             return redirect(url_for('home'))
         else:
@@ -56,7 +56,7 @@ def login():
 
 
 # http://localhost:5000/bank/logout - this will be the logout page
-@app.route('/bank/logout')
+@app.route('/logout')
 def logout():
     # Remove session data, this will log the user out
     session.pop('loggedin', None)
@@ -67,7 +67,7 @@ def logout():
 
 
 # http://localhost:5000/bank/register - this will be the registration page, we need to use both GET and POST requests
-@app.route('/bank/register', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     # Output message if something goes wrong...
     msg = ''
@@ -110,7 +110,7 @@ def register():
 
 
 # http://localhost:5000/bank/home - this will be the home page, only accessible for logged in users
-@app.route('/bank/home')
+@app.route('/home')
 def home():
     # Check if the user is logged in
     if 'loggedin' in session:
@@ -121,7 +121,7 @@ def home():
 
 
 # http://localhost:5000/bank/profile - this will be the profile page, only accessible for logged in users
-@app.route('/bank/profile')
+@app.route('/profile')
 def profile():
     # Check if the user is logged in
     if 'loggedin' in session:
@@ -248,7 +248,7 @@ def modify_customer(customer_id):  # Update a customer record in the database
         return render_template('customer_modify.html', res=res)
 
 
-@app.route('/accounts')
+@app.route('/account')
 def get_accounts():
     # Establish database connection
     conn, cursor = database_connection()
@@ -299,15 +299,13 @@ def get_accounts():
     if filters:
         sql_query += " WHERE " + " AND ".join(filters)
 
-    # Execute the SQL sqlQuery
-    cursor.execute(sql_query, values)
-    res = cursor.fetchall()
-
-    # close cursor and connection
+    cursor.execute(sql_query, values)  # Execute SQL query
+    res = cursor.fetchall()  # Extract results
     cursor.close()
     conn.close()
-
-    return jsonify(res), 200
+    headers = [i[0] for i in cursor.description]
+    table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
+    return render_template('account.html', table=table)
 
 
 @app.route('/accounts', methods=['POST'])
