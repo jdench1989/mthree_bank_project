@@ -287,53 +287,44 @@ def get_accounts():
 
 
 
-@app.route('/accounts', methods=['POST'])
+@app.route('/account/new', methods=['GET', 'POST'])
 def create_account():
-    # Connect to the database
-    conn, cursor = database_connection()
+    if request.method == 'GET':
+        return render_template('account_new.html')
+    elif request.method == 'POST':
 
-    # Extract form data
-    form_values = []
-    for key in request.form:
-        form_values.append(request.form[key])
+        # Connect to the database
+        conn, cursor = database_connection()
 
-    # SQL query using placeholders
-    sql_query = "INSERT INTO accounts (account_num, sort_code, type_id, status, balance, customer_id) VALUES (%s, %s, %s, %s, %s, %s);"
+        # Extract form data
+        form_values = []
+        for key in request.form:
+            form_values.append(request.form[key])
 
-    cursor.execute(sql_query, form_values)  # Execute SQL query
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({"message": "Account created successfully"}), 200
+        # SQL query using placeholders
+        sql_query = "INSERT INTO accounts (account_num, sort_code, type_id, status, balance, customer_id) VALUES (%s, %s, %s, %s, %s, %s);"
+
+        cursor.execute(sql_query, form_values)  # Execute SQL query
+        conn.commit()
+        account_id = cursor.lastrowid
+        cursor.close()
+        conn.close()
+        return redirect(url_for('get_accounts', account_id=account_id))
 
 
-@app.route('/accounts/<account_id>', methods=['PUT'])
+@app.route('/account/<account_id>', methods=['GET', 'PUT'])
 def update_account(account_id):
-    conn, cursor = database_connection()  # Establish database connection
-    # Extract columns and values to be updated from the request JSON
-    # data = request.get_json()
-    status = request.form.get('status')
-
-    # check if status is provided in request
-    if not status:
-        return jsonify({"error : missing 'status' field"}), 400
-
-    # execute the query
-    try:
+    if request.method == 'GET':
+        return render_template('account_modify.html', account_id=account_id)
+    elif request.method == "PUT":
+        conn, cursor = database_connection()  # Establish database connection
+        status = request.form.get('status')
         sql_query = "UPDATE accounts SET status = %s WHERE account_id = %s"
         cursor.execute(sql_query, (status, account_id))
         conn.commit()
-        return jsonify({"message": "account status updated successfully"}), 200
-
-    except Exception as err:
-        # Rollback in case of error
-        conn.rollback()
-        return jsonify({"error": str(err)}), 500
-
-    finally:
-        # Close cursor and connection
         cursor.close()
         conn.close()
+        return render_template(url_for('get_accounts', account_id=account_id))
 
 
 @app.route('/transactions')

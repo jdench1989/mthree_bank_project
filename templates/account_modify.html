@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+
+{% block title %}Modify Account{% endblock %}
+
+{% block content %}
+<button>Button to submit changes</button>
+<p>Account_number = {{account_id}}</p>
+<p>PLACEHOLDER: Will display a single field form to change account status</p>
+<p>Form submission routes to /account/account_number METHOD = PUT</p>
+{{res}}
+{% endblock %}
+
