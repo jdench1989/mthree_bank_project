@@ -198,7 +198,7 @@ def get_customers():
     table_html = tabulate(rows, headers, tablefmt='unsafehtml')
 
     # Render template with table and message
-    table = f'<div class="content"><p>{table_html}</p></div>'
+    table = f'<div class="transaction-table"><p>{table_html}</p></div>'
     return render_template('customer.html', table=table, msg=msg)
 
 
@@ -348,7 +348,7 @@ def get_accounts():
     conn.close()
 
     # Headers for the table
-    headers = ['Acc ID', 'Acc Num', 'Sort Code', 'Acc Type', 'Acc Status', 'Cust Last Name', 'Cust First Name', 'Balance', 'Creation Date', 'Modify']
+    headers = ['Acc ID', 'Acc Num', 'Sort Code', 'Acc Type', 'Acc Status', 'Cust Last Name', 'Cust First Name', 'Balance (£)', 'Creation Date', 'Modify']
 
     # Append Modify button to each row
     rows = []
@@ -361,7 +361,7 @@ def get_accounts():
     table_html = tabulate(rows, headers, tablefmt='unsafehtml')
 
     # Render template with table
-    table = f'<div class="content"><p>{table_html}</p></div>'
+    table = f'<div class="transaction-table"><p>{table_html}</p></div>'
     return render_template('account.html', table=table)
 
 
@@ -478,8 +478,7 @@ def get_transactions():
     cursor.close()
     conn.close()
 
-    table = f'<div class="content"><p>{
-        tabulate(res, headers=headers, tablefmt="html")}</p></div>'
+    table = f'<div class="transaction-table"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
     return render_template('transaction.html', table=table)
 
 # http://localhost:5000/transaction/search - Returns transaction_search.html template
@@ -507,8 +506,7 @@ def create_transaction():
         values = list(form_data.values())
 
         # SQL query
-        sql_query = f"INSERT INTO transactions ({columns}) VALUES ({
-            placeholders});"
+        sql_query = f"INSERT INTO transactions ({columns}) VALUES ({placeholders});"
 
         # Execute SQL query
         cursor.execute(sql_query, values)
