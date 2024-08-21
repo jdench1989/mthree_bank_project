@@ -4,5 +4,17 @@
 
 {% block content %}
 <h2>Transaction Details</h2>
+<div class="button-container">
+
+    <button onclick="window.location.href='{{ url_for('create_transaction') }}'">
+        <i class="fas fa-users  fa-lg"></i> Create Transaction
+    </button> 
+    <button onclick="window.location.href='{{ url_for('search_transactions') }}'">
+        <i class="fas fa-university  fa-lg"></i> Search Transactions
+    </button>
+   
+    </div>
+
 {{ table|safe }}
+
 {% endblock %}

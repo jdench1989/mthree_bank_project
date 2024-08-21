@@ -405,7 +405,9 @@ def modify_account(account_id):
 @app.route('/transaction')
 def get_transactions():
     conn, cursor = database_connection()
-    sql_query = """SELECT * FROM customers c
+    sql_query = """SELECT c.customer_id, c.status as customer_status ,c.last_name ,c.first_name, c.dob as date_of_birth ,email, phone ,address ,a.account_id, a.account_num ,a.sort_code ,a.type_id as account_type ,a.status as account_status ,a.balance ,a.creation_date ,
+                    t.transaction_id, t.type_id as transaction_type, t.account_from, t.account_to, t.transaction_time ,t.amount
+                   FROM customers c
                    INNER JOIN accounts a ON c.customer_id = a.customer_id
                    INNER JOIN accounts_transactions a_tr ON a_tr.account_id = a.account_id
                    INNER JOIN transactions t ON a_tr.transaction_id = t.transaction_id"""
@@ -418,6 +420,8 @@ def get_transactions():
         'last_name': 'c.last_name LIKE %s',
         'account_num': 'a.account_num = %s',
         'sort_code': 'a.sort_code = %s',
+        'transaction_id': 't.transaction_id=%s',
+        'account_type': 'a.type_id=%s',
         'transaction_time_earliest': 'date(t.transaction_time) >= %s',
         'transaction_time_latest': 'date(t.transaction_time) <= %s'
     }
@@ -453,10 +457,14 @@ def get_transactions():
 
 @app.route('/transaction/new', methods=['GET', 'POST'])
 def create_transaction():
+     # Establish database connection
+    conn, cursor = database_connection()
     if request.method == 'GET':
         return render_template('transaction_new.html')
     
-    if request.method == 'POST':
+    
+    elif request.method == 'POST':
+    
         # Establish database connection
         conn, cursor = database_connection()
 
@@ -479,6 +487,11 @@ def create_transaction():
         conn.close()
 
         return redirect(url_for('get_transactions', transaction_id=transaction_id))
+
+@app.route('/transactions/search', methods=['GET'])
+def search_transactions():
+    return render_template('transaction_search.html')
+
 
 
 if __name__ == '__main__':
