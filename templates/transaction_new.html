@@ -10,108 +10,94 @@
     <!--<button onclick="window.location.href='/customer/new'">
         <i class="fas fa-users  fa-lg"></i> Create Customer
     </button> -->
-    
+
     <button onclick="window.location.href='{{ url_for('get_transactions') }}'">
         <i class="fas fa-users  fa-lg"></i> Back
-    </button> 
+    </button>
     <button onclick="window.location.href='{{ url_for('search_transactions') }}'">
         <i class="fas fa-university  fa-lg"></i> Search Transactions
     </button>
-    </div>
+</div>
 
 
 
 <div class="form-container ">
 
 
-    
-<!--<form action="{{ url_for('create_transaction') }}" method="POST">
+    <form action="{{ url_for('create_transaction') }}" method="POST">
+        <!--Transaction Type Dropdown -->
+        <label for="type_id">Transaction Type:</label><br>
+        <select id="type_id" name="type_id" onchange="toggleFields()" required>
+            <option value="">Select Transaction Type</option>
+            <option value="1">Deposit</option>
+            <option value="2">Withdrawal</option>
+            <option value="3">Transfer</option>
+        </select><br>
 
-    <label for="type_id">Type ID:</label><br>
-    <input type="text" id="type_id" name="type_id" required><br>
+        <!-- Account From Field -->
+        <label for="account_from">Account From ID:</label><br>
+        <input type="text" id="account_from" name="account_from"><br>
 
-    <label for="account_from">Account From:</label><br>
-    <input type="text" id="account_from" name="account_from" required><br>
+        <!-- Account To Field -->
+        <label for="account_to">Account To ID:</label><br>
+        <input type="text" id="account_to" name="account_to"><br>
 
-    <label for="account_to">Account to:</label><br>
-    <input type="text" id="account_to" name="account_to" required><br>
+        <!-- Amount Field -->
+        <label for="amount">Amount:</label><br>
+        <input type="number" id="amount" name="amount" required><br>
 
-    <label for="amount">Amount:</label><br>
-    <input type="number" id="amount" name="amount" required><br>
+        <!-- Button to submit the form -->
+        <div class="button-container">
+            <button type="submit">Create Transaction</button>
+        </div>
+    </form>
 
-   Button to submit the form 
-    <div class="button-container">
-        <button type="submit">Create Transaction</button>
-    </div>
-</form>-->
+    <!-- JavaScript to handle form field visibility and null values -->
+    <script>
+        function toggleFields() {
+            var type = document.getElementById("type_id").value;
+            var accountFromField = document.getElementById("account_from");
+            var accountToField = document.getElementById("account_to");
 
-<form action="{{ url_for('create_transaction') }}" method="POST">
-    <!-- Transaction Type Dropdown -->
-    <label for="type_id">Transaction Type:</label><br>
-    <select id="type_id" name="type_id" onchange="toggleFields()" required>
-        <option value="">Select Transaction Type</option>
-        <option value="1">Deposit</option>
-        <option value="2">Withdrawal</option>
-        <option value="3">Transfer</option>
-    </select><br>
+            // Reset required attributes
+            accountFromField.required = false;
+            accountToField.required = false;
 
-    <!-- Account From Field -->
-    <label for="account_from">Account From:</label><br>
-    <input type="text" id="account_from" name="account_from"><br>
+            // Handle field visibility and null values based on transaction type
+            if (type === "1") { // Deposit
+                accountFromField.hidden = true;
+                accountFromField.value = ""; // Set value to NULL (empty) for hidden field
+                accountFromField.disabled = true;
+                accountToField.hidden = false;
+                accountToField.required = true;
+                accountToField.disabled = false;
+            } else if (type === "2") { // Withdrawal
+                accountFromField.hidden = false;
+                accountFromField.required = true;
+                accountFromField.disabled = false;
 
-    <!-- Account To Field -->
-    <label for="account_to">Account To:</label><br>
-    <input type="text" id="account_to" name="account_to"><br>
+                accountToField.hidden = true;
+                accountToField.value = ""; // Set value to empty
+                accountToField.disabled = true; // Disable to avoid validation issues
+            } else if (type === "3") { // Transfer
+                accountFromField.hidden = false;
+                accountFromField.required = true;
+                accountFromField.disabled = false;
 
-    <!-- Amount Field -->
-    <label for="amount">Amount:</label><br>
-    <input type="number" id="amount" name="amount" required><br>
+                accountToField.hidden = false;
+                accountToField.required = true;
+                accountToField.disabled = false;
+            } else {
+                accountFromField.hidden = false;
+                accountFromField.disabled = false;
 
-    <!-- Button to submit the form -->
-    <div class="button-container">
-        <button type="submit">Create Transaction</button>
-    </div>
-</form>
-
-<!-- JavaScript to handle form field visibility and null values -->
-<script>
-    function toggleFields() {
-        var type = document.getElementById("type_id").value;
-        var accountFromField = document.getElementById("account_from");
-        var accountToField = document.getElementById("account_to");
-
-        // Reset required attributes
-        accountFromField.required = false;
-        accountToField.required = false;
-
-        // Handle field visibility and null values based on transaction type
-        if (type === "1") { // Deposit
-            accountFromField.style.display = "none";
-            accountFromField.value = ""; // Set value to NULL (empty) for hidden field
-            accountToField.style.display = "block";
-            accountToField.required = true;
-        } else if (type === "2") { // Withdrawal
-            accountFromField.style.display = "block";
-            accountFromField.required = true;
-            accountToField.style.display = "none";
-            accountToField.value = ""; // Set value to NULL (empty) for hidden field
-        } else if (type === "3") { // Transfer
-            accountFromField.style.display = "block";
-            accountToField.style.display = "block";
-            accountFromField.required = true;
-            accountToField.required = true;
-        } else {
-            // Reset fields if no type is selected
-            accountFromField.style.display = "block";
-            accountToField.style.display = "block";
+                accountToField.hidden = false;
+                accountToField.disabled = false;
+            }
         }
-    }
 
-    // Initialize fields on page load
-    document.addEventListener("DOMContentLoaded", toggleFields);
-</script>
+        // Initialize fields on page load
+        document.addEventListener("DOMContentLoaded", toggleFields);
+    </script>
 
-
-
-
-{% endblock %}
+    {% endblock %}

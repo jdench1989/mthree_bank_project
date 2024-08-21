@@ -388,9 +388,8 @@ def get_transactions():
         'last_name': 'c.last_name LIKE %s',
         'account_num': 'a.account_num = %s',
         'sort_code': 'a.sort_code = %s',
-        'transaction_id': 'a.transaction_id=%s',
+        'transaction_id': 't.transaction_id=%s',
         'account_type': 'a.type_id=%s',
-
         'transaction_time_earliest': 'date(t.transaction_time) >= %s',
         'transaction_time_latest': 'date(t.transaction_time) <= %s'
     }
@@ -432,7 +431,7 @@ def create_transaction():
         return render_template('transaction_new.html')
     
     
-    """
+    elif request.method == 'POST':
     
         # Establish database connection
         conn, cursor = database_connection()
@@ -456,58 +455,6 @@ def create_transaction():
         conn.close()
 
         return redirect(url_for('get_transactions', transaction_id=transaction_id))
-"""
-    if request.method == 'POST':
-        type_id = request.form['type_id']
-        account_from = request.form.get('account_from') or None  # Convert empty string to None (NULL)
-        account_to = request.form.get('account_to') or None  # Convert empty string to None (NULL)
-        amount = request.form['amount']
-        
-        # Example: Handle NULL values in SQL query
-        # sql_query = "INSERT INTO transactions (type_id, account_from, account_to, amount) VALUES (%s, %s, %s, %s)"
-        # cursor.execute(sql_query, (type_id, account_from, account_to, amount))
-    try:  
-        # Process the transaction based on the type_id
-        if type_id == '1':
-            # Handle deposit logic
-            cursor.execute("UPDATE accounts SET balance = balance + %s WHERE account_id = %s", (amount, account_to))
-        elif type_id == '2':
-            # Handle withdrawal logic
-            cursor.execute("SELECT balance FROM accounts WHERE account_id = %s", (account_from,))
-            account_from_balance = cursor.fetchone()[0]
-            if account_from_balance < amount:
-                raise ValueError("Insufficient funds for withdrawal")
-            # Decrease balance of account_from
-            cursor.execute("UPDATE accounts SET balance = balance - %s WHERE account_id = %s", (amount, account_from))
-        elif type_id == '3':
-            # Handle transfer logic
-            # Ensure account_from has sufficient funds
-            cursor.execute("SELECT balance FROM accounts WHERE account_id = %s", (account_from,))
-            account_from_balance = cursor.fetchone()[0]
-            if account_from_balance < amount:
-                raise ValueError("Insufficient funds for transfer")
-            
-            # Decrease balance of account_from
-            cursor.execute("UPDATE accounts SET balance = balance - %s WHERE account_id = %s", (amount, account_from))
-            # Increase balance of account_to
-            cursor.execute("UPDATE accounts SET balance = balance + %s WHERE account_id = %s", (amount, account_to))
-
-        # Commit the transaction
-        conn.commit()
-        return redirect(url_for('get_transactions'))  # Redirect to a success page or another endpoint
-
-    except Exception as e:
-        conn.rollback()  # Rollback transaction in case of error
-        return f"Transaction failed: {str(e)}", 400  # Return error message
-    
-        # Redirect or render a template after processing
-        #return redirect(url_for('get_transactions'))
-
-    finally:
-        cursor.close()
-        conn.close()
-
-    
 
 @app.route('/transactions/search', methods=['GET'])
 def search_transactions():
