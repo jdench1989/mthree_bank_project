@@ -10,9 +10,12 @@ from tabulate import tabulate
 load_dotenv()
 
 app = Flask(__name__)  # Instantiate Flask
-app.secret_key = os.environ["APP_SECRET_KEY"]  # Load secret key from environment variables
+# Load secret key from environment variables
+app.secret_key = os.environ["APP_SECRET_KEY"]
 
 # Root endpoint automatically routed to http://localhost:5000/bank/home
+
+
 @app.route('/')
 def index():
     return redirect(url_for('home'))
@@ -128,7 +131,8 @@ def profile():
         conn, cursor = database_connection()
         # We need all the account info for the user so we can display it on the profile page
         dict_cursor = conn.cursor(dictionary=True)
-        dict_cursor.execute('SELECT * FROM users WHERE id = %s', (session['id'],))
+        dict_cursor.execute(
+            'SELECT * FROM users WHERE id = %s', (session['id'],))
         account = dict_cursor.fetchone()
         dict_cursor.close()
         cursor.close()
@@ -144,7 +148,7 @@ def get_customers():
     msg = request.args.get('msg')
     conn, cursor = database_connection()
     sql_query = "SELECT * FROM customers"
-    
+
     # Mapping query parameters to SQL conditions
     filters = {
         'customer_id': 'customer_id = %s',
@@ -152,7 +156,7 @@ def get_customers():
         'last_name': 'last_name LIKE %s',
         'email': 'email LIKE %s'
     }
-    
+
     # Generate WHERE clause and values without using zip
     conditions = []
     values = []
@@ -172,23 +176,26 @@ def get_customers():
 
     cursor.close()
     conn.close()
-    
+
     # Add Modify and Delete headers
     headers.extend(['Modify', 'Delete'])
-    
+
     # Create the table with Modify and Delete buttons
     table_html = '<table border="1">'
-    table_html += '<tr>' + ''.join(f'<th>{header}</th>' for header in headers) + '</tr>'
-    
+    table_html += '<tr>' + \
+        ''.join(f'<th>{header}</th>' for header in headers) + '</tr>'
+
     for row in res:
         row_html = ''.join(f'<td>{cell}</td>' for cell in row)
         customer_id = row[0]  # Assuming customer_id is the first column
-        modify_button = f'<td><a href="/customer/modify/{customer_id}"><button>Modify</button></a></td>'
-        delete_button = f'<td><a href="/customer/delete/{customer_id}"><button>Delete</button></a></td>'
+        modify_button = f'<td><a href="/customer/modify/{
+            customer_id}"><button>Modify</button></a></td>'
+        delete_button = f'<td><a href="/customer/delete/{
+            customer_id}"><button>Delete</button></a></td>'
         table_html += f'<tr>{row_html}{modify_button}{delete_button}</tr>'
-    
+
     table_html += '</table>'
-    
+
     table = f'<div class="content">{table_html}</div>'
     return render_template('customer.html', table=table, msg=msg)
 
@@ -196,6 +203,7 @@ def get_customers():
 @app.route('/customer/search', methods=['GET'])
 def search_customers():
     return render_template('customer_search.html')
+
 
 @app.route('/customer/new', methods=['GET', 'POST'])
 def new_customer():  # Create a new customer record in the database
@@ -224,7 +232,8 @@ def new_customer():  # Create a new customer record in the database
 def modify_customer(customer_id):  # Update a customer record in the database
     if request.method == 'GET':
         conn, cursor = database_connection()
-        cursor.execute("SELECT * FROM customers WHERE customer_id = %s;", (customer_id,))
+        cursor.execute(
+            "SELECT * FROM customers WHERE customer_id = %s;", (customer_id,))
         customer = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -266,8 +275,9 @@ def modify_customer(customer_id):  # Update a customer record in the database
         cursor.close()
         conn.close()
         return redirect(url_for('get_customers', customer_id=customer_id))
-    
-@app.route('/customer/delete/<int:customer_id>', methods = ["GET"])
+
+
+@app.route('/customer/delete/<int:customer_id>', methods=["GET"])
 def delete_customer(customer_id):
     conn, cursor = database_connection()  # Establish database connection
     # Check the database to see if the provided customer has an associated account
@@ -278,7 +288,8 @@ def delete_customer(customer_id):
         msg = 'Customer has an account and cannot be deleted. Deactivate instead'
         return redirect(url_for('get_customers', msg=msg))
     else:
-        cursor.execute("DELETE FROM customers WHERE customer_id = %s", [customer_id])
+        cursor.execute(
+            "DELETE FROM customers WHERE customer_id = %s", [customer_id])
         conn.commit()
         cursor.close()
         conn.close()
@@ -290,7 +301,7 @@ def delete_customer(customer_id):
 def get_accounts():
     conn, cursor = database_connection()
     sql_query = "SELECT * FROM accounts"
-    
+
     # Mapping query parameters to SQL conditions
     filters = {
         'account_id': 'account_id = %s',
@@ -302,7 +313,7 @@ def get_accounts():
         'customer_id': 'customer_id = %s',
         'creation_date': 'creation_date = %s'
     }
-    
+
     # Generate WHERE clause and values without using zip
     conditions = []
     values = []
@@ -322,28 +333,32 @@ def get_accounts():
 
     cursor.close()
     conn.close()
-    
+
     # Add Modify and Delete headers
     headers.extend(['Modify'])
-    
+
     # Create the table with Modify and Delete buttons
     table_html = '<table border="1">'
-    table_html += '<tr>' + ''.join(f'<th>{header}</th>' for header in headers) + '</tr>'
-    
+    table_html += '<tr>' + \
+        ''.join(f'<th>{header}</th>' for header in headers) + '</tr>'
+
     for row in res:
         row_html = ''.join(f'<td>{cell}</td>' for cell in row)
         account_id = row[0]  # Assuming customer_id is the first column
-        modify_button = f'<td><a href="/account/modify/{account_id}"><button>Modify</button></a></td>'
+        modify_button = f'<td><a href="/account/modify/{
+            account_id}"><button>Modify</button></a></td>'
         table_html += f'<tr>{row_html}{modify_button}</tr>'
-    
+
     table_html += '</table>'
-    
+
     table = f'<div class="content">{table_html}</div>'
     return render_template('account.html', table=table)
+
 
 @app.route('/account/search', methods=['GET'])
 def search_accounts():
     return render_template('account_search.html')
+
 
 @app.route('/account/new', methods=['GET', 'POST'])
 def create_account():
@@ -374,7 +389,8 @@ def create_account():
 def modify_account(account_id):
     if request.method == 'GET':
         conn, cursor = database_connection()
-        cursor.execute("SELECT * FROM accounts WHERE account_id = %s;", (account_id,))
+        cursor.execute(
+            "SELECT * FROM accounts WHERE account_id = %s;", (account_id,))
         account = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -390,7 +406,7 @@ def modify_account(account_id):
             'address': account[7]
         }
         return render_template('account_modify.html', account=account_dict)
-    
+
     elif request.method == "POST":
         conn, cursor = database_connection()  # Establish database connection
         status = request.form.get('status')
@@ -409,7 +425,7 @@ def get_transactions():
                    INNER JOIN accounts a ON c.customer_id = a.customer_id
                    INNER JOIN accounts_transactions a_tr ON a_tr.account_id = a.account_id
                    INNER JOIN transactions t ON a_tr.transaction_id = t.transaction_id"""
-    
+
     # Mapping query parameters to SQL conditions
     filters = {
         'customer_id': 'c.customer_id = %s',
@@ -421,7 +437,7 @@ def get_transactions():
         'transaction_time_earliest': 'date(t.transaction_time) >= %s',
         'transaction_time_latest': 'date(t.transaction_time) <= %s'
     }
-    
+
     # Generate WHERE clause and values without using zip
     conditions = []
     values = []
@@ -442,20 +458,20 @@ def get_transactions():
     cursor.execute(sql_query, values)
     res = cursor.fetchall()
     headers = [i[0] for i in cursor.description]
-    
+
     cursor.close()
     conn.close()
-    
-    table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
-    return render_template('transaction.html', table=table)
 
+    table = f'<div class="content"><p>{
+        tabulate(res, headers=headers, tablefmt="html")}</p></div>'
+    return render_template('transaction.html', table=table)
 
 
 @app.route('/transaction/new', methods=['GET', 'POST'])
 def create_transaction():
     if request.method == 'GET':
         return render_template('transaction_new.html')
-    
+
     if request.method == 'POST':
         # Establish database connection
         conn, cursor = database_connection()
@@ -467,13 +483,14 @@ def create_transaction():
         values = list(form_data.values())
 
         # SQL query
-        sql_query = f"INSERT INTO transactions ({columns}) VALUES ({placeholders})"
-        
+        sql_query = f"INSERT INTO transactions ({columns}) VALUES ({
+            placeholders})"
+
         # Execute SQL query
         cursor.execute(sql_query, values)
         conn.commit()
         transaction_id = cursor.lastrowid
-        
+
         # Clean up
         cursor.close()
         conn.close()
