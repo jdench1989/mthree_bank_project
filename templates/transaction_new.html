@@ -12,10 +12,10 @@
     </button> -->
 
     <button onclick="window.location.href='{{ url_for('get_transactions') }}'">
-        <i class="fas fa-users  fa-lg"></i> Back
+        <i class="fas fa-arrow-left  fa-lg"></i> Back
     </button>
     <button onclick="window.location.href='{{ url_for('search_transactions') }}'">
-        <i class="fas fa-university  fa-lg"></i> Search Transactions
+        <i class="fas fa-search  fa-lg"></i> Search Transactions
     </button>
 </div>
 
@@ -33,19 +33,19 @@
             <option value="2">Withdrawal</option>
             <option value="3">Transfer</option>
         </select><br>
-
+ 
         <!-- Account From Field -->
-        <label for="account_from">Account From ID:</label><br>
+        <label for="account_from" id="account_from_label">Account From ID:</label><br>
         <input type="text" id="account_from" name="account_from"><br>
-
+ 
         <!-- Account To Field -->
-        <label for="account_to">Account To ID:</label><br>
+        <label for="account_to" id="account_to_label" >Account To ID:</label><br>
         <input type="text" id="account_to" name="account_to"><br>
-
+ 
         <!-- Amount Field -->
-        <label for="amount">Amount:</label><br>
+        <label for="amount">Amount (£):</label><br>
         <input type="number" id="amount" name="amount" required><br>
-
+ 
         <!-- Button to submit the form -->
         <div class="button-container">
             <button type="submit">Create Transaction</button>
@@ -58,10 +58,17 @@
             var type = document.getElementById("type_id").value;
             var accountFromField = document.getElementById("account_from");
             var accountToField = document.getElementById("account_to");
+            var accountFromLabel = document.getElementById("account_from_label");
+            var accountToLabel = document.getElementById("account_to_label");
+
 
             // Reset required attributes
+            
             accountFromField.required = false;
             accountToField.required = false;
+            
+
+           
 
             // Handle field visibility and null values based on transaction type
             if (type === "1") { // Deposit
@@ -71,6 +78,12 @@
                 accountToField.hidden = false;
                 accountToField.required = true;
                 accountToField.disabled = false;
+                accountFromLabel.hidden= true;
+                accountFromLabel.disabled=true;
+                accountToLabel.hidden=false;
+                accountTolabel.disabled=false;
+
+                
             } else if (type === "2") { // Withdrawal
                 accountFromField.hidden = false;
                 accountFromField.required = true;
@@ -79,6 +92,10 @@
                 accountToField.hidden = true;
                 accountToField.value = ""; // Set value to empty
                 accountToField.disabled = true; // Disable to avoid validation issues
+                accountFromLabel.hidden= false;
+                accountFromLabel.disabled=false;
+                accountToLabel.hidden=true;
+                accountTolabel.disabled=true;
             } else if (type === "3") { // Transfer
                 accountFromField.hidden = false;
                 accountFromField.required = true;
@@ -87,12 +104,21 @@
                 accountToField.hidden = false;
                 accountToField.required = true;
                 accountToField.disabled = false;
+                accountFromLabel.hidden= false;
+                accountFromLabel.disabled=false;
+                accountToLabel.hidden=false;
+                accountTolabel.disabled=false;
+
             } else {
                 accountFromField.hidden = false;
                 accountFromField.disabled = false;
 
                 accountToField.hidden = false;
                 accountToField.disabled = false;
+                accountFromLabel.hidden= false;
+                accountFromLabel.disabled=false;
+                accountToLabel.hiddn=false;
+                accountTolabel.disabled=false;
             }
         }
 
