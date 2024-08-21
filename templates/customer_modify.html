@@ -3,6 +3,7 @@
 {% block title %}Modify Customer{% endblock %}
 
 {% block content %}
+<div class="form-container">
 <h2>Modify Customer</h2>
 <form action="{{ url_for('modify_customer', customer_id=customer.customer_id) }}" method="post">
     <label for="status">Status:</label>
@@ -25,7 +26,10 @@
 
     <label for="address">Address:</label>
     <input type="text" id="address" name="address" value="{{ customer.address }}"><br>
-
-    <button type="submit">Update</button>
+    <!-- Button to submit the form -->
+    <div class="button-container">
+        <button type="submit">Update</button>
+    </div>
 </form>
+</div>
 {% endblock %}
