@@ -189,7 +189,7 @@ def get_customers():
     
     table_html += '</table>'
     
-    table = f'<div class="content">{table_html}</div>'
+    table = f'<div class= "transaction-table">{table_html}</div>'
     return render_template('customer.html', table=table, msg=msg)
 
 
@@ -327,7 +327,9 @@ def get_accounts():
     headers.extend(['Modify'])
     
     # Create the table with Modify and Delete buttons
-    table_html = '<table border="1">'
+
+    table_html = '<table border="0">'
+    #table_html = '<table class="transaction-table">' 
     table_html += '<tr>' + ''.join(f'<th>{header}</th>' for header in headers) + '</tr>'
     
     for row in res:
@@ -338,7 +340,7 @@ def get_accounts():
     
     table_html += '</table>'
     
-    table = f'<div class="content">{table_html}</div>'
+    table = f'<div class= "transaction-table">{table_html}</div>'
     return render_template('account.html', table=table)
 
 @app.route('/account/search', methods=['GET'])
@@ -450,7 +452,7 @@ def get_transactions():
     cursor.close()
     conn.close()
     
-    table = f'<div class="content"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
+    table = f'<div class="transaction-table"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
     return render_template('transaction.html', table=table)
 
 

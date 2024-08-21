@@ -11,6 +11,9 @@
 <button onclick="window.location.href='{{ url_for('search_customers') }}'">
     <i class="fas fa-university  fa-lg"></i> Search Customers
 </button>
+<button onclick="window.location.href='{{ url_for('get_customers') }}'">
+    <i class="fas fa-university  fa-lg"></i> Refresh Data
+</button>
 </div>
 <h2>Customer Details</h2>
 {% if msg %}
