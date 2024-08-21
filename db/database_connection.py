@@ -2,8 +2,10 @@ import mysql.connector
 
 db_config = {
     'user': 'root',
-    'password': '',
-    'host': 'localhost'
+    'password': 'root',
+    'host': 'db',
+    'port': '3306',
+    'raise_on_warnings': True
 }
 
 def database_connection():
