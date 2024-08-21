@@ -190,10 +190,8 @@ def get_customers():
     rows = []
     for row in res:
         customer_id = row[0]
-        modify_button = f'<a href="/customer/modify/{
-            customer_id}"><button>Modify</button></a>'
-        delete_button = f'<a href="/customer/delete/{
-            customer_id}"><button>Delete</button></a>'
+        modify_button = f'<a href="/customer/modify/{customer_id}"><button>Modify</button></a>'
+        delete_button = f'<a href="/customer/delete/{customer_id}"><button>Delete</button></a>'
         rows.append(list(row) + [modify_button, delete_button])
 
     # Generate HTML table using tabulate with the 'unsafehtml' format
@@ -344,24 +342,22 @@ def get_accounts():
     sql_query += " ORDER BY a.account_id"
     cursor.execute(sql_query, values)
     res = cursor.fetchall()
-
+    
     # Close cursor and connection
     cursor.close()
     conn.close()
 
     # Headers for the table
-    headers = ['Acc ID', 'Acc Num', 'Sort Code', 'Acc Type', 'Acc Status',
-               'Cust Last Name', 'Cust First Name', 'Balance', 'Creation Date', 'Modify']
+    headers = ['Acc ID', 'Acc Num', 'Sort Code', 'Acc Type', 'Acc Status', 'Cust Last Name', 'Cust First Name', 'Balance', 'Creation Date', 'Modify']
 
     # Append Modify button to each row
     rows = []
     for row in res:
         account_id = row[0]
-        modify_button = f'<a href="/account/modify/{
-            account_id}"><button>Modify</button></a>'
+        modify_button = f'<a href="/account/modify/{account_id}"><button>Modify</button></a>'
         rows.append(list(row) + [modify_button])
 
-    # Generate HTML table using tabulate
+    # Generate HTML table using tabulate with the 'unsafehtml' format
     table_html = tabulate(rows, headers, tablefmt='unsafehtml')
 
     # Render template with table
