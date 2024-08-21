@@ -12,9 +12,7 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - "./db/seeds/table_setup.sql:/docker-entrypoint-initdb.d/1.sql"
-      - "./db/seeds/triggers.sql:/docker-entrypoint-initdb.d/2.sql"
-      - "./db/seeds/dummy-data.sql:/docker-entrypoint-initdb.d/3.sql"
+      - "./db/db_setup.sql:/docker-entrypoint-initdb.d/1.sql"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -31,7 +29,7 @@ services:
         condition: service_healthy
     entrypoint: >
       sh -c "
-      sleep 15 &&
+      sleep 30 &&
       flask run -h 0.0.0.0 -p 5000
       "
 
