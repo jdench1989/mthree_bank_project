@@ -18,8 +18,6 @@ app.secret_key = os.environ["APP_SECRET_KEY"]
 
 
 # Root endpoint automatically routed to http://localhost:5000/bank/home
-
-
 @app.route('/')
 def index():
     return redirect(url_for('home'))
