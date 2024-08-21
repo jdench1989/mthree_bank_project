@@ -1,3 +1,5 @@
+Use bank;
+
 CREATE TRIGGER after_transaction_insert
 AFTER INSERT ON transactions
 FOR EACH ROW
