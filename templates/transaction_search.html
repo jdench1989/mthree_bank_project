@@ -1,0 +1,79 @@
+{% extends 'layout.html' %}
+
+{% block title %}Transaction Search{% endblock %}
+
+{%block script %} 
+<script>
+    function buildQueryUrl() {
+        // Get input values
+        const transaction_id = document.getElementById('transaction_id').value;
+        const account_type = document.getElementById('account_type').value;
+        const account_from = document.getElementById('account_from').value;
+        const account_to = document.getElementById('account_to').value;
+        const first_name = document.getElementById('first_name').value;
+        const last_name = document.getElementById('last_name').value;
+      /*const transaction_earliest = document.getElementById('transaction_time').value;
+        const transaction_latest= document.getElementById('transaction_time').value*/
+
+        // Base URL
+        let baseUrl = '/transaction?';
+
+        // Append parameters to URL
+        if (transaction_id) baseUrl += `transaction_id=${encodeURIComponent(transaction_id)}&`;
+        if (account_type) baseUrl += `account_type=${encodeURIComponent(account_type)}&`;
+        if (account_from) baseUrl += `account_from=${encodeURIComponent(account_from)}&`;
+        if (account_to) baseUrl += `account_to=${encodeURIComponent(account_to)}&`;
+        if (first_name) baseUrl += `first_name=${encodeURIComponent(first_name)}&`;
+        if (last_name) baseUrl += `last_name=${encodeURIComponent(last_name)}&`;
+       /* if (transaction_earliest) baseUrl += `transaction_time\>=${encodeURIComponent(transaction_earliest)}&`;
+        if (transaction_latest) baseUrl += `transaction_time\<=${encodeURIComponent(transaction_latest)}&`;*/
+
+        // Remove trailing '&'
+        baseUrl = baseUrl.slice(0, -1);
+
+        // Redirect to the constructed URL
+        window.location.href = baseUrl;
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="button-container">
+
+<!--<button onclick="window.location.href='/customer/new'">
+    <i class="fas fa-users  fa-lg"></i> Create Customer
+</button> -->
+
+<button onclick="window.location.href='{{ url_for('create_transaction') }}'">
+    <i class="fas fa-users  fa-lg"></i> Create Transaction
+</button> 
+<button onclick="window.location.href='{{ url_for('get_transactions') }}'">
+    <i class="fas fa-university  fa-lg"></i> Back
+</button>
+</div>
+<!-- <h2>Customer Search</h2> -->
+<h1>Search Accounts</h1>
+<div class="search_form-container">
+    <label for="transaction_id">Transaction ID:</label><br>
+    <input type="number" id="transaction_id"><br>
+    <label for="account_type">Account Type:</label><br>
+    <input type="text" id="account_type"><br>
+    <label for="account_from">Account From:</label><br>
+    <input type="text" id="account_from"><br>
+    <label for="account_to">Account To:</label><br>
+    <input type="text" id="account_to"><br>
+    <label for="first_name">first_name:</label><br>
+    <input type="text" id="first_name"><br>
+    <label for="last_name">last_name:</label><br>
+    <input type="text" id="last_name"><br>
+   <!-- <label for="transaction_earliest">Transactions From:</label><br>
+    <input type="date" id="transaction_earliest"><br>
+    <label for="transaction_latest">Transactions To:</label><br>
+    <input type="date" id="transaction_latest"><br>-->
+    <br> 
+    <div class="button-container">
+      <button onclick="buildQueryUrl()">Search</button>
+    </div>
+</div>
+{% endblock %}
+
