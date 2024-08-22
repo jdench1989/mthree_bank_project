@@ -1,22 +1,19 @@
+### Intro
+This project combines a flask web API and a MySQL database into a basic simulated banking app. Particular attention has been paid to implementing sessions and user login. Additionally constraints and triggers are used in the MySQL database in order ensure that CRUD operations are performed in a logical way. 
+
+### Setup
+1. Download, install and run Docker desktop - https://www.docker.com/products/docker-desktop/
+2. Clone this repo to your machine
+   
+
 ### Building and running your application
 
-When you're ready, start your application by running:
+When you're ready, navigate to the cloned repo on your machine and start the application by running:
 `docker compose up --build`.
 
-Your application will be available at http://localhost:5000.
+When the container has finished building and is running properly you will see:
+![image](https://github.com/user-attachments/assets/0ec3a81e-287c-467b-b43f-c94b6adb9003)
 
-### Deploying your application to the cloud
 
-First, build your image, e.g.: `docker build -t myapp .`.
-If your cloud uses a different CPU architecture than your development
-machine (e.g., you are on a Mac M1 and your cloud provider is amd64),
-you'll want to build the image for that platform, e.g.:
-`docker build --platform=linux/amd64 -t myapp .`.
+The application will be available at http://localhost:5000.
 
-Then, push it to your registry, e.g. `docker push myregistry.com/myapp`.
-
-Consult Docker's [getting started](https://docs.docker.com/go/get-started-sharing/)
-docs for more detail on building and pushing.
-
-### References
-* [Docker's Python guide](https://docs.docker.com/language/python/)
