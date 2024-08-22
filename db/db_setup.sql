@@ -120,7 +120,7 @@ INSERT INTO customers (status, last_name, first_name, dob, email, phone, address
     ("ACTIVE", "Holt", "Raymond", "1998-06-23", "raymondholt@yahoo.com", "07555987654", "456 Second Street, Here, There, CD32 1AB"), 
     ("INACTIVE", "Santiago", "Amy", "2004-03-12", "amysantiago@msn.com", "07123456789", "789 Third Street, Somewhere, Nowhere, EF45 6GH"),
     ("ACTIVE", "Boyle", "Charles", "1989-10-30", "charlesboyle@icloud.com", "07987654321", "121a Fourth Street, Thisville, Thatcounty, XY34 Z56"),
-    ("ACTIVE", "Jones", "David", "1989-12-11", "email@email.com", "fv", "121a Fourth Street, Thisville, Thatcounty, XY34 Z56");
+    ("ACTIVE", "Jeffords", "Terry", "1989-12-11", "email@email.com", "07162983068", "121b Fourth Street, Thisville, Thatcounty, XY34 Z56");
 INSERT INTO accounts (account_num, sort_code, type_id, status, balance, creation_date, customer_id) VALUES 
     ("12345678", "11-22-33", 1, "OPEN", 1000.00, CURTIME(), 1), 
     ("98765432", "44-55-66", 1, "OPEN", 1345.54, CURTIME(), 2),
