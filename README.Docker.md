@@ -1,6 +1,8 @@
 ### Intro
 This project combines a flask web API and a MySQL database into a basic simulated banking app. Particular attention has been paid to implementing sessions and user login. Additionally constraints and triggers are used in the MySQL database in order ensure that CRUD operations are performed in a logical way. 
 
+An Entity Relationship Diagram for the database can be found in the main repo directory. 
+
 ### Setup
 1. Download, install and run Docker desktop - https://www.docker.com/products/docker-desktop/
 2. Clone this repo to your machine
