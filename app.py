@@ -1,14 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from db.database_connection import database_connection
-from dotenv import load_dotenv
 from tabulate import tabulate
 import hashlib
 import re
 import os
 
-
-# Load environment variables from .env file to local environment variables
-load_dotenv()
 
 # Instantiate Flask
 app = Flask(__name__)  

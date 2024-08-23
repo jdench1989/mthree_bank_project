@@ -1,5 +1,5 @@
 ### Intro
-This project combines a flask web API and a MySQL database into a basic simulated banking app. Particular attention has been paid to implementing sessions and user login. Additionally constraints and triggers are used in the MySQL database in order ensure that CRUD operations are performed in a logical way. 
+This project combines a flask web API and a MySQL database into a basic simulated banking app. Particular attention has been paid to implementing sessions and user login. Additionally constraints and triggers are used in the MySQL database in order to ensure that CRUD operations are performed in a logical way. 
 
 Docker is used to containerise the application to simplify ongoing deployment. Separate containers are created for the database and the server. The database is automatically configured and populated with dummy data at creation.
 
