@@ -148,376 +148,411 @@ def profile():
 # http://localhost:5000/customer - returns details of all customers in a table. Accepts filters as query string
 @app.route('/customer')
 def get_customers():
-    msg = request.args.get('msg')
-    conn, cursor = database_connection()
-    sql_query = "SELECT * FROM customers"
+    if 'loggedin' in session:
+        msg = request.args.get('msg')
+        conn, cursor = database_connection()
+        sql_query = "SELECT * FROM customers"
 
-    # Mapping query parameters to SQL conditions
-    filters = {
-        'customer_id': 'customer_id = %s',
-        'first_name': 'first_name LIKE %s',
-        'last_name': 'last_name LIKE %s',
-        'email': 'email LIKE %s'
-    }
+        # Mapping query parameters to SQL conditions
+        filters = {
+            'customer_id': 'customer_id = %s',
+            'first_name': 'first_name LIKE %s',
+            'last_name': 'last_name LIKE %s',
+            'email': 'email LIKE %s'
+        }
 
-    # Generate WHERE clause and values
-    conditions = []
-    values = []
+        # Generate WHERE clause and values
+        conditions = []
+        values = []
 
-    for key, value in request.args.items():
-        if key in filters:
-            conditions.append(filters[key])
-            values.append(f"%{value}%" if 'LIKE' in filters[key] else value)
+        for key, value in request.args.items():
+            if key in filters:
+                conditions.append(filters[key])
+                values.append(f"%{value}%" if 'LIKE' in filters[key] else value)
 
-    # Append conditions to the SQL query
-    if conditions:
-        sql_query += " WHERE " + " AND ".join(conditions)
+        # Append conditions to the SQL query
+        if conditions:
+            sql_query += " WHERE " + " AND ".join(conditions)
 
-    # Append ORDER BY clause
-    sql_query += " ORDER BY customer_id"
-    cursor.execute(sql_query, values)
-    res = cursor.fetchall()
+        # Append ORDER BY clause
+        sql_query += " ORDER BY customer_id"
+        cursor.execute(sql_query, values)
+        res = cursor.fetchall()
 
-    # Define headers
-    headers = ['Customer ID', 'Status', 'Last Name', 'First Name',
-               'Date of Birth', 'Email', 'Phone', 'Address', 'Modify', 'Delete']
+        # Define headers
+        headers = ['Customer ID', 'Status', 'Last Name', 'First Name',
+                'Date of Birth', 'Email', 'Phone', 'Address', 'Modify', 'Delete']
 
-    # Close cursor and connection
-    cursor.close()
-    conn.close()
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
 
-    # Append Modify and Delete buttons to each row
-    rows = []
-    for row in res:
-        customer_id = row[0]
-        modify_button = f'<a href="/customer/modify/{customer_id}"><button>Modify</button></a>'
-        delete_button = f'<a href="/customer/delete/{customer_id}"><button>Delete</button></a>'
-        rows.append(list(row) + [modify_button, delete_button])
+        # Append Modify and Delete buttons to each row
+        rows = []
+        for row in res:
+            customer_id = row[0]
+            modify_button = f'<a href="/customer/modify/{customer_id}"><button>Modify</button></a>'
+            delete_button = f'<a href="/customer/delete/{customer_id}"><button>Delete</button></a>'
+            rows.append(list(row) + [modify_button, delete_button])
 
-    # Generate HTML table using tabulate with the 'unsafehtml' format
-    table_html = tabulate(rows, headers, tablefmt='unsafehtml')
+        # Generate HTML table using tabulate with the 'unsafehtml' format
+        table_html = tabulate(rows, headers, tablefmt='unsafehtml')
 
-    # Render template with table and message
-    table = f'<div class="transaction-table"><p>{table_html}</p></div>'
-    return render_template('customer.html', table=table, msg=msg)
-
+        # Render template with table and message
+        table = f'<div class="transaction-table"><p>{table_html}</p></div>'
+        return render_template('customer.html', table=table, msg=msg)
+    else:
+        return redirect(url_for('login'))
 
 # http://localhost:5000/customer/search - Returns template customer_search.html
 @app.route('/customer/search', methods=['GET'])
 def search_customers():
-    return render_template('customer_search.html')
+    if 'loggedin' in session:
+        return render_template('customer_search.html')
+    else:
+        return redirect(url_for('login'))
 
 
 # http://localhost:5000/customer/new- Posts new customer to the database
 @app.route('/customer/new', methods=['GET', 'POST'])
 def new_customer():
-    if request.method == "GET":
-        return render_template('customer_new.html')
-    elif request.method == 'POST':
-        conn, cursor = database_connection()  # Establish database connection
+    if 'loggedin' in session:
+        if request.method == "GET":
+            return render_template('customer_new.html')
+        elif request.method == 'POST':
+            conn, cursor = database_connection()  # Establish database connection
 
-        # Extract form data
-        form_values = ['ACTIVE']
-        for key in request.form:
-            form_values.append(request.form[key])
+            # Extract form data
+            form_values = ['ACTIVE']
+            for key in request.form:
+                form_values.append(request.form[key])
 
-        # SQL query using placeholders
-        sql_query = "INSERT INTO customers (status, last_name, first_name, dob, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s, %s);"
+            # SQL query using placeholders
+            sql_query = "INSERT INTO customers (status, last_name, first_name, dob, email, phone, address) VALUES (%s, %s, %s, %s, %s, %s, %s);"
 
-        cursor.execute(sql_query, form_values)  # Execute SQL query
-        conn.commit()
-        customer_id = cursor.lastrowid
-        cursor.close()
-        conn.close()
-        return redirect(url_for('get_customers', customer_id=customer_id))
+            cursor.execute(sql_query, form_values)  # Execute SQL query
+            conn.commit()
+            customer_id = cursor.lastrowid
+            cursor.close()
+            conn.close()
+            return redirect(url_for('get_customers', customer_id=customer_id))
+    else:
+        return redirect(url_for('login'))
 
 
 # http://localhost:5000/customer/modify/<customer_id> - Modifies existing customer data
 @app.route('/customer/modify/<int:customer_id>', methods=['GET', 'POST'])
 def modify_customer(customer_id):  # Update a customer record in the database
-    if request.method == 'GET':
-        conn, cursor = database_connection()
-        cursor.execute(
-            "SELECT * FROM customers WHERE customer_id = %s;", (customer_id,))
-        customer = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        # Convert tuple to a dictionary with column names
-        customer_dict = {
-            'customer_id': customer[0],
-            'status': customer[1],
-            'last_name': customer[2],
-            'first_name': customer[3],
-            'dob': customer[4],
-            'email': customer[5],
-            'phone': customer[6],
-            'address': customer[7]
-        }
-        return render_template('customer_modify.html', customer=customer_dict)
+    if 'loggedin' in session:
+        if request.method == 'GET':
+            conn, cursor = database_connection()
+            cursor.execute(
+                "SELECT * FROM customers WHERE customer_id = %s;", (customer_id,))
+            customer = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            # Convert tuple to a dictionary with column names
+            customer_dict = {
+                'customer_id': customer[0],
+                'status': customer[1],
+                'last_name': customer[2],
+                'first_name': customer[3],
+                'dob': customer[4],
+                'email': customer[5],
+                'phone': customer[6],
+                'address': customer[7]
+            }
+            return render_template('customer_modify.html', customer=customer_dict)
 
-    elif request.method == 'POST':
-        # Extract columns and values to be updated from the request form
-        form_values = [
-            request.form['status'],
-            request.form['last_name'],
-            request.form['first_name'],
-            request.form['dob'],
-            request.form['email'],
-            request.form['phone'],
-            request.form['address'],
-            customer_id  # Add customer ID at the end
-        ]
+        elif request.method == 'POST':
+            # Extract columns and values to be updated from the request form
+            form_values = [
+                request.form['status'],
+                request.form['last_name'],
+                request.form['first_name'],
+                request.form['dob'],
+                request.form['email'],
+                request.form['phone'],
+                request.form['address'],
+                customer_id  # Add customer ID at the end
+            ]
 
-        # Compile columns and values into a SQL query using placeholders
-        sql_query = """UPDATE customers SET 
-        status = %s, last_name = %s, first_name = %s, dob = %s, email = %s, phone = %s, address = %s
-        WHERE customer_id = %s;
-        """
+            # Compile columns and values into a SQL query using placeholders
+            sql_query = """UPDATE customers SET 
+            status = %s, last_name = %s, first_name = %s, dob = %s, email = %s, phone = %s, address = %s
+            WHERE customer_id = %s;
+            """
 
-        conn, cursor = database_connection()
-        cursor.execute(sql_query, form_values)
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return redirect(url_for('get_customers', customer_id=customer_id))
+            conn, cursor = database_connection()
+            cursor.execute(sql_query, form_values)
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return redirect(url_for('get_customers', customer_id=customer_id))
+    else:
+        return redirect(url_for('login'))
 
 
 # http://localhost:5000/customer/delete/customer_id - Deletes customer form database only if they do not have an account
 @app.route('/customer/delete/<int:customer_id>', methods=["GET"])
 def delete_customer(customer_id):
-    conn, cursor = database_connection()  # Establish database connection
-    # Check the database to see if the provided customer has an associated account
-    cursor.execute(
-        "SELECT account_id FROM accounts WHERE customer_id = %s LIMIT 1;", [customer_id])
-    account_record = cursor.fetchone()  # Fetch the first result if it exists
-    if account_record:
-        msg = 'Customer has an account and cannot be deleted. Deactivate instead'
-        return redirect(url_for('get_customers', msg=msg))
-    else:
+    if 'loggedin' in session:
+        conn, cursor = database_connection()  # Establish database connection
+        # Check the database to see if the provided customer has an associated account
         cursor.execute(
-            "DELETE FROM customers WHERE customer_id = %s", [customer_id])
-        conn.commit()
-        cursor.close()
-        conn.close()
-        msg = 'Customer record deleted successfully'
-        return redirect(url_for('get_customers', msg=msg))
+            "SELECT account_id FROM accounts WHERE customer_id = %s LIMIT 1;", [customer_id])
+        account_record = cursor.fetchone()  # Fetch the first result if it exists
+        if account_record:
+            msg = 'Customer has an account and cannot be deleted. Deactivate instead'
+            return redirect(url_for('get_customers', msg=msg))
+        else:
+            cursor.execute(
+                "DELETE FROM customers WHERE customer_id = %s", [customer_id])
+            conn.commit()
+            cursor.close()
+            conn.close()
+            msg = 'Customer record deleted successfully'
+            return redirect(url_for('get_customers', msg=msg))
+    else:
+        return redirect(url_for('login'))
 
 
 # http://localhost:5000/account - returns details of all accounts in a table. Accepts filters as query string
 @app.route('/account')
 def get_accounts():
-    conn, cursor = database_connection()
-    sql_query = """
-    SELECT a.account_id, a.account_num, a.sort_code, a_t.type, a.status, c.last_name, c.first_name, a.balance, a.creation_date
-    FROM accounts a
-    JOIN account_type a_t ON a.type_id = a_t.type_id
-    JOIN customers c ON a.customer_id = c.customer_id
-    """
+    if 'loggedin' in session:
+        conn, cursor = database_connection()
+        sql_query = """
+        SELECT a.account_id, a.account_num, a.sort_code, a_t.type, a.status, c.last_name, c.first_name, a.balance, a.creation_date
+        FROM accounts a
+        JOIN account_type a_t ON a.type_id = a_t.type_id
+        JOIN customers c ON a.customer_id = c.customer_id
+        """
 
-    # Mapping query parameters to SQL conditions
-    filters = {
-        'account_id': 'account_id = %s',
-        'account_num': 'account_num = %s',
-        'sort_code': 'sort_code = %s',
-        'status': 'status = %s',
-        'type_id': 'type_id = %s',
-        'customer_id': 'customer_id = %s',
-        'creation_date': 'creation_date = %s'
-    }
+        # Mapping query parameters to SQL conditions
+        filters = {
+            'account_id': 'account_id = %s',
+            'account_num': 'account_num = %s',
+            'sort_code': 'sort_code = %s',
+            'status': 'status = %s',
+            'type_id': 'type_id = %s',
+            'customer_id': 'customer_id = %s',
+            'creation_date': 'creation_date = %s'
+        }
 
-    # Generate WHERE clause and values
-    conditions = []
-    values = []
+        # Generate WHERE clause and values
+        conditions = []
+        values = []
 
-    for key, value in request.args.items():
-        if key in filters:
-            conditions.append(filters[key])
-            values.append(value)
+        for key, value in request.args.items():
+            if key in filters:
+                conditions.append(filters[key])
+                values.append(value)
 
-    # Append conditions to the SQL query
-    if conditions:
-        sql_query += " WHERE " + " AND ".join(conditions)
+        # Append conditions to the SQL query
+        if conditions:
+            sql_query += " WHERE " + " AND ".join(conditions)
 
-    # Append ORDER BY to query and execute query
-    sql_query += " ORDER BY a.account_id"
-    cursor.execute(sql_query, values)
-    res = cursor.fetchall()
-    
-    # Close cursor and connection
-    cursor.close()
-    conn.close()
+        # Append ORDER BY to query and execute query
+        sql_query += " ORDER BY a.account_id"
+        cursor.execute(sql_query, values)
+        res = cursor.fetchall()
+        
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
 
-    # Headers for the table
-    headers = ['Acc ID', 'Acc Num', 'Sort Code', 'Acc Type', 'Acc Status', 'Cust Last Name', 'Cust First Name', 'Balance (£)', 'Creation Date', 'Modify']
+        # Headers for the table
+        headers = ['Acc ID', 'Acc Num', 'Sort Code', 'Acc Type', 'Acc Status', 'Cust Last Name', 'Cust First Name', 'Balance (£)', 'Creation Date', 'Modify']
 
-    # Append Modify button to each row
-    rows = []
-    for row in res:
-        account_id = row[0]
-        modify_button = f'<a href="/account/modify/{account_id}"><button>Modify</button></a>'
-        rows.append(list(row) + [modify_button])
+        # Append Modify button to each row
+        rows = []
+        for row in res:
+            account_id = row[0]
+            modify_button = f'<a href="/account/modify/{account_id}"><button>Modify</button></a>'
+            rows.append(list(row) + [modify_button])
 
-    # Generate HTML table using tabulate with the 'unsafehtml' format
-    table_html = tabulate(rows, headers, tablefmt='unsafehtml')
+        # Generate HTML table using tabulate with the 'unsafehtml' format
+        table_html = tabulate(rows, headers, tablefmt='unsafehtml')
 
-    # Render template with table
-    table = f'<div class="transaction-table"><p>{table_html}</p></div>'
-    return render_template('account.html', table=table)
+        # Render template with table
+        table = f'<div class="transaction-table"><p>{table_html}</p></div>'
+        return render_template('account.html', table=table)
+    else:
+        return redirect(url_for('login'))
 
 
 # http://localhost:5000/account/search - Returns template account_search.html
 @app.route('/account/search', methods=['GET'])
 def search_accounts():
-    return render_template('account_search.html')
+    if 'loggedin' in session:
+        return render_template('account_search.html')
+    else:
+        return redirect(url_for('login'))
 
 
 # http://localhost:5000/account/new Posts new account to the database
 @app.route('/account/new', methods=['GET', 'POST'])
 def create_account():
-    if request.method == 'GET':
-        return render_template('account_new.html')
-    elif request.method == 'POST':
+    if 'loggedin' in session:
+        if request.method == 'GET':
+            return render_template('account_new.html')
+        elif request.method == 'POST':
 
-        # Connect to the database
-        conn, cursor = database_connection()
+            # Connect to the database
+            conn, cursor = database_connection()
 
-        # Extract form data
-        form_values = []
-        for key in request.form:
-            form_values.append(request.form[key])
+            # Extract form data
+            form_values = []
+            for key in request.form:
+                form_values.append(request.form[key])
 
-        # SQL query using placeholders
-        sql_query = "INSERT INTO accounts (account_num, sort_code, type_id, status, balance, customer_id) VALUES (%s, %s, %s, %s, %s, %s);"
+            # SQL query using placeholders
+            sql_query = "INSERT INTO accounts (account_num, sort_code, type_id, status, balance, customer_id) VALUES (%s, %s, %s, %s, %s, %s);"
 
-        cursor.execute(sql_query, form_values)  # Execute SQL query
-        conn.commit()
-        account_id = cursor.lastrowid
-        cursor.close()
-        conn.close()
-        return redirect(url_for('get_accounts', account_id=account_id))
+            cursor.execute(sql_query, form_values)  # Execute SQL query
+            conn.commit()
+            account_id = cursor.lastrowid
+            cursor.close()
+            conn.close()
+            return redirect(url_for('get_accounts', account_id=account_id))
+    else:
+        return redirect(url_for('login'))
 
 
 # http://localhost:5000/account/modify/<account_id> -  Modifies existing account status
 @app.route('/account/modify/<account_id>', methods=['GET', 'POST'])
 def modify_account(account_id):
-    if request.method == 'GET':
-        conn, cursor = database_connection()
-        cursor.execute(
-            "SELECT account_id, status FROM accounts WHERE account_id = %s LIMIT 1;", (account_id,))
-        account = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        # Convert tuple to a dictionary with column names
-        account_dict = {
-            'account_id': account[0],
-            'status': account[1],
-        }
-        return render_template('account_modify.html', account=account_dict)
+    if 'loggedin' in session:
+        if request.method == 'GET':
+            conn, cursor = database_connection()
+            cursor.execute(
+                "SELECT account_id, status FROM accounts WHERE account_id = %s LIMIT 1;", (account_id,))
+            account = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            # Convert tuple to a dictionary with column names
+            account_dict = {
+                'account_id': account[0],
+                'status': account[1],
+            }
+            return render_template('account_modify.html', account=account_dict)
 
-    elif request.method == "POST":
-        conn, cursor = database_connection()  # Establish database connection
-        status = request.form.get('status')
-        sql_query = "UPDATE accounts SET status = %s WHERE account_id = %s"
-        cursor.execute(sql_query, (status, account_id))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return redirect(url_for('get_accounts', account_id=account_id))
+        elif request.method == "POST":
+            conn, cursor = database_connection()  # Establish database connection
+            status = request.form.get('status')
+            sql_query = "UPDATE accounts SET status = %s WHERE account_id = %s"
+            cursor.execute(sql_query, (status, account_id))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return redirect(url_for('get_accounts', account_id=account_id))
+    else:
+        return redirect(url_for('login'))
 
 
 # http://localhost:5000/transaction - returns details of all transactions in a table. Accepts filters as query string
 @app.route('/transaction')
 def get_transactions():
-    conn, cursor = database_connection()
-    sql_query = """SELECT t.transaction_id, tt.type, t.transaction_time, t.amount, t.account_from, t.account_to
-                FROM transactions t
-                JOIN transaction_type tt ON t.type_id = tt.type_id
-                JOIN accounts_transactions a_t on t.transaction_id = a_t.transaction_id
-                JOIN accounts a ON a_t.account_id = a.account_id
-                JOIN customers c ON a.customer_id = c.customer_id
-                """
+    if 'loggedin' in session:
+        conn, cursor = database_connection()
+        sql_query = """SELECT t.transaction_id, tt.type, t.transaction_time, t.amount, t.account_from, t.account_to
+                    FROM transactions t
+                    JOIN transaction_type tt ON t.type_id = tt.type_id
+                    JOIN accounts_transactions a_t on t.transaction_id = a_t.transaction_id
+                    JOIN accounts a ON a_t.account_id = a.account_id
+                    JOIN customers c ON a.customer_id = c.customer_id
+                    """
 
-    # Mapping query parameters to SQL conditions
-    filters = {
-        'customer_id': 'c.customer_id = %s',
-        'account_id': 'a.account_id = %s',
-        'first_name': 'c.first_name LIKE %s',
-        'last_name': 'c.last_name LIKE %s',
-        'account_num': 'a.account_num = %s',
-        'sort_code': 'a.sort_code = %s',
-        'transaction_id': 't.transaction_id=%s',
-        'account_type': 'a.type_id=%s',
-        'transaction_time_earliest': 'date(t.transaction_time) >= %s',
-        'transaction_time_latest': 'date(t.transaction_time) <= %s'
-    }
+        # Mapping query parameters to SQL conditions
+        filters = {
+            'customer_id': 'c.customer_id = %s',
+            'account_id': 'a.account_id = %s',
+            'first_name': 'c.first_name LIKE %s',
+            'last_name': 'c.last_name LIKE %s',
+            'account_num': 'a.account_num = %s',
+            'sort_code': 'a.sort_code = %s',
+            'transaction_id': 't.transaction_id=%s',
+            'account_type': 'a.type_id=%s',
+            'transaction_time_earliest': 'date(t.transaction_time) >= %s',
+            'transaction_time_latest': 'date(t.transaction_time) <= %s'
+        }
 
-    # Generate WHERE clause and values without using zip
-    conditions = []
-    values = []
+        # Generate WHERE clause and values without using zip
+        conditions = []
+        values = []
 
-    for key, value in request.args.items():
-        if key in filters:
-            conditions.append(filters[key])
-            # Adjust value formatting for LIKE queries
-            if 'LIKE' in filters[key]:
-                values.append(f"%{value}%")
-            else:
-                values.append(value)
+        for key, value in request.args.items():
+            if key in filters:
+                conditions.append(filters[key])
+                # Adjust value formatting for LIKE queries
+                if 'LIKE' in filters[key]:
+                    values.append(f"%{value}%")
+                else:
+                    values.append(value)
 
-    # Append conditions to the SQL query
-    if conditions:
-        sql_query += " WHERE " + " AND ".join(conditions)
+        # Append conditions to the SQL query
+        if conditions:
+            sql_query += " WHERE " + " AND ".join(conditions)
 
-    # Append ORDER BY to query
-    sql_query += " ORDER BY t.transaction_id"
-    cursor.execute(sql_query, values)
-    res = cursor.fetchall()
-    headers = ['Transaction ID', 'Transaction type', 'Transaction time',
-               'Amount(£)', 'From Account ID', 'To Account ID']
+        # Append ORDER BY to query
+        sql_query += " ORDER BY t.transaction_id"
+        cursor.execute(sql_query, values)
+        res = cursor.fetchall()
+        headers = ['Transaction ID', 'Transaction type', 'Transaction time',
+                'Amount(£)', 'From Account ID', 'To Account ID']
 
-    cursor.close()
-    conn.close()
+        cursor.close()
+        conn.close()
 
-    table = f'<div class="transaction-table"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
-    return render_template('transaction.html', table=table)
+        table = f'<div class="transaction-table"><p>{tabulate(res, headers=headers, tablefmt="html")}</p></div>'
+        return render_template('transaction.html', table=table)
+    else:
+        return redirect(url_for('login'))
 
 # http://localhost:5000/transaction/search - Returns transaction_search.html template
 @app.route('/transactions/search', methods=['GET'])
 def search_transactions():
-    return render_template('transaction_search.html')
+    if 'loggedin' in session:
+        return render_template('transaction_search.html')
+    else:
+        return redirect(url_for('login'))
 
 # http://localhost:5000/transaction/new - Post a new transaction
 @app.route('/transaction/new', methods=['GET', 'POST'])
 def create_transaction():
-    # Establish database connection
-    conn, cursor = database_connection()
-    if request.method == 'GET':
-        return render_template('transaction_new.html')
-
-    elif request.method == 'POST':
-
+    if 'loggedin' in session:
         # Establish database connection
         conn, cursor = database_connection()
+        if request.method == 'GET':
+            return render_template('transaction_new.html')
 
-        # Extract form data
-        form_data = request.form.to_dict()
-        columns = ', '.join(form_data.keys())
-        placeholders = ', '.join(['%s'] * len(form_data))
-        values = list(form_data.values())
+        elif request.method == 'POST':
 
-        # SQL query
-        sql_query = f"INSERT INTO transactions ({columns}) VALUES ({placeholders});"
+            # Establish database connection
+            conn, cursor = database_connection()
 
-        # Execute SQL query
-        cursor.execute(sql_query, values)
-        conn.commit()
-        transaction_id = cursor.lastrowid
+            # Extract form data
+            form_data = request.form.to_dict()
+            columns = ', '.join(form_data.keys())
+            placeholders = ', '.join(['%s'] * len(form_data))
+            values = list(form_data.values())
 
-        # Clean up
-        cursor.close()
-        conn.close()
+            # SQL query
+            sql_query = f"INSERT INTO transactions ({columns}) VALUES ({placeholders});"
 
-        return redirect(url_for('get_transactions', transaction_id=transaction_id))
+            # Execute SQL query
+            cursor.execute(sql_query, values)
+            conn.commit()
+            transaction_id = cursor.lastrowid
+
+            # Clean up
+            cursor.close()
+            conn.close()
+
+            return redirect(url_for('get_transactions', transaction_id=transaction_id))
+    else:
+        return redirect(url_for('login'))
 
 
 if __name__ == '__main__':
