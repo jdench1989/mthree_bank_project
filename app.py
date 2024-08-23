@@ -331,13 +331,13 @@ def get_accounts():
 
         # Mapping query parameters to SQL conditions
         filters = {
-            'account_id': 'account_id = %s',
-            'account_num': 'account_num = %s',
-            'sort_code': 'sort_code = %s',
-            'status': 'status = %s',
-            'type_id': 'type_id = %s',
-            'customer_id': 'customer_id = %s',
-            'creation_date': 'creation_date = %s'
+            'account_id': 'a.account_id = %s',
+            'account_num': 'a.account_num = %s',
+            'sort_code': 'a.sort_code = %s',
+            'status': 'a.status = %s',
+            'type_id': 'a_t.type_id = %s',
+            'customer_id': 'c.customer_id = %s',
+            'creation_date': 'a.creation_date = %s'
         }
 
         # Generate WHERE clause and values
